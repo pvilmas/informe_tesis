@@ -1,0 +1,480 @@
+CorlessJK97:
+  type: Article
+  title: A Sequence of Series for the Lambert W Function
+  author:
+    - Robert M. Corless
+    - David J. Jeffrey
+    - Donald E. Knuth
+  doi: "10.1145/258726.258783"
+  page-range: 197-204
+  parent:
+    type: Proceedings
+    title: International Symposium on Symbolic and Algebraic Computation
+    location: Kihei, Maui, Hawaii, USA.
+    year: 1997
+    isbn: 978-0-89791-875-6
+
+NewmanT42:
+  type: Article
+  title: A Formal Theorem in Church's Theory of Types
+  doi: "10.2307/2267552"
+  author:
+    - M. H. A. Newman
+    - Alan M. Turing
+  page-range: 28-33
+  parent:
+    type: Periodical
+    title: The Journal of Symbolic Logic
+    volume: 7
+    number: 1
+    year: 1942
+    publisher: Association for Symbolic Logic
+    url: http://www.jstor.org/stable/2267552
+
+Turing38:
+  type: Article
+  title: Systems of Logic Based on Ordinals
+  author: Alan M. Turing
+  year: 1938
+  organization: Princeton University
+  location: NJ, USA
+  doi: "10.1112/plms/s2-45.1.161"
+
+Stark2019:
+  type: Article
+  title: Digital Twin
+  author:
+    - Rainer Stark
+    - Thomas Damerau
+  year: 2019
+  page-range: 1-8
+  parent:
+    type: Book
+    title: CIRP Encyclopedia of Production Engineering
+    year: 2019
+    publisher: "Springer Berlin Heidelberg"
+    editor: 
+      - Sami Chatti
+      - Tullio Tolio
+    doi: "10.1007/978-3-642-35950-7_16870-1"
+    url: https://doi.org/10.1007/978-3-642-35950-7_16870-1
+
+IETF_DT:
+  type: misc
+  title: Digital Twin Network, Concepts and Reference Architecture
+  author:
+    - Cheng Zhou
+    - Hongwei Yang
+    - Xiaodong Duan
+    - Diego López
+    - Antonio Pastor
+    - Qin Wu
+    - Mohamed Boucadair
+    - Christian Jacquenet
+  publisher: Internet Research Task Force (IETF)
+  year: 2022
+  url: https://www.ietf.org/archive/id/draft-irtf-nmrg-network-digital-twin-arch-01.html
+
+Lopez:
+  type: Article
+  title: Microscopic traffic simulation using SUMO
+  author:
+    - Pablo López Álvarez
+    - Michael Behrisch
+    - Laura Bieker-Walz
+    - Jakob Erdmann
+    - Yun-Pang Flötteröd
+    - Robert Hilbrich
+    - Leonard Lücken
+    - Johannes Rumel
+    - Peter Wagner
+    - Evamarie Wießner
+  page-range: 2575-2582
+  parent:
+    type: Conference
+    title: 2018 21st international conference on intelligent transportation systems (ITSC)
+    year: 2018
+    publisher: IEEE
+
+Kotusevski2009:
+  type: Article
+  title: A review of traffic simulation software
+  author:
+    - Gligor Kotusevski
+    - Ken A. Hawick
+  page-range: 35-54
+  parent:
+    type: Periodical
+    title: Research Letters in the Information and Mathematical Sciences
+    volume: 13
+    year: 2009
+
+Ejercito:
+  type: Article
+  title: Traffic simulation software review
+  author:
+    - Paolo M. Ejercito
+    - Kristine Gayle E. Nebrija
+    - Rommel P. Feria
+    - Ligaya Leah Lara-Figueroa
+  page-range: 1-4
+  parent:
+    type: Book
+    title: 2017 8th International Conference on Information, Intelligence, Systems & Applications (IISA)
+    year: 2017
+    publisher: IEEE
+
+SUMO:
+  type: web
+  title: Introduction
+  author: German Aerospace Center
+  year: 2015
+  url: https://sumo.dlr.de/docs/index.html.
+
+Diallo2021:
+  type: article
+  title: Comparative evaluation of road traffic simulators based on modeler’s specifications An application to intermodal mobility behaviors
+  author:
+    - Azise Oumar Diallo
+    - Guillaume Lozenguez
+    - Arnaud Doniec
+    - René Mandiau
+  page-range: 265-272
+  parent:
+    type: book
+    title: 13th International Conference on Agents and Artificial Intelligence
+    year: 2021
+    publisher: SCITEPRESS - Science and Technology Publications
+
+Krajzewicz2003:
+  type: article
+  title: The "Simulation of Urban MObility" package, An open source traffic simulation
+  author: 
+    - Daniel Krajzewicz
+    - Markus Hartinger
+    - Georg Hertkorn
+    - Peter Mieth
+    - Julia Ringel
+    - Christian Rössel
+    - Peter Wagner
+  parent:
+    type: book
+    title: Proceedings of the 2003 European Simulation and Modelling Conference
+    year: 2003
+
+Codeca2015:
+  type: article
+  title: Luxembourg SUMO Traffic (LUST) scenario, 24 hours of mobility for vehicular networking research
+  author:
+    - Lara Codeca
+    - Raphaël Frank
+    - Thomas Engel
+  page-range: 1-8
+  parent:
+    type: book
+    title: 2015 IEEE Vehicular Networking Conference (VNC)
+    year: 2015
+    publisher: IEEE
+
+Bieker2015:
+  type: article
+  title: Traffic Simulation for all, a real world traffic scenario from the city of Bologna
+  author:
+    - Laura Bieker
+    - Daniel Krajzewicz
+    - AntonioPio Morra
+    - Carlo Michelacci
+    - Fabio Cartolano
+  page-range: 47-60
+  parent:
+    type: book
+    title: Modeling Mobility with Open Data. 2nd SUMO Conference 2014 Berlin, Germany, May 15-16.
+    year: 2015
+    publisher: Springer
+
+Ivanov2020:
+  type: article
+  title: Digital twin of city, concept overview
+  author: 
+    - Sergey Ivanov
+    - Ksenia Nikolskaya
+    - Gleb Radchenko
+    - Leonid Sokolinsky
+    - Mikhail Zymbler
+  page-range: 178-186
+  parent:
+    type: book
+    title: 2020 Global Smart Industry Conference (GloSIC
+    year: 2020
+    publisher: IEEE
+
+Glaessgen2012:
+  type: article
+  title: The digital twin paradigm for future NASA and US air force vehicles
+  author:
+    - Edward Glaessgen
+    - David Stargel
+  page-range: 1818
+  parent:
+    type: book
+    title: 53rd AIAA/ASME/ASCE/AHS/ASC structures, structural dynamics and materials conference 20th AIAA/ASME/AHS adaptive structures conference 14th AIAA
+    year: 2012
+
+Shahat2021:
+  type: article
+  title: City digital twin potentials; A review and research agenda
+  author:
+    - Ehab Shahat
+    - Chang T Hyun
+    - Chunho Yeom
+  page-range: 3386
+  parent:
+    type: periodical
+    title: Sustainability
+    volume: 13
+    number: 6
+    year: 2021
+    publisher: MDPI
+
+TraCI:
+  type: web
+  title: TraCI
+  author: German Aerospace Center
+  year: 2024
+  url: https://sumo.dlr.de/docs/TraCI.html
+
+Argota2022:
+  type: article
+  title: Getting Real; the Challenge of Building and Validating a Large-Scale Digital Twinf of Barcelona's Traffic with Empirical Data
+  author: Javier Argota Sánchez-Vaquerizo
+  page-range: 24
+  parent:
+    type: periodical
+    title: ISPRS International Journal of Geo-Information
+    volume: 11
+    number: 1
+    year: 2022
+    publisher: Multidisciplinary Digital Publishing Institute
+
+Kuvsic2022:
+  type: article
+  title: Building a motorway digital twin in SUMO; Real-time simulation of continuous data stream from traffic counters
+  author: 
+    - Krešimir Kušić
+    - Rene Schumann
+    - Edouard Ivanjko
+  page-range: 71-76
+  parent:
+    type: book
+    title: 22 International Symposium ELMAR
+    year: 2022
+    publisher: IEEE
+
+Azevedo2024:
+  type: book
+  title: Optimizing Vehicle IoT Systems; SUMO-Digital Twin Performance Analysis
+  author:
+    - Mariana Azevedo
+    - Matheus Andrade
+    - Morsinaldo Medeiros
+    - Thaís Medeiros
+    - Marianne Silva
+    - Ivanovitch Silva
+    - Emiliano Sisinni
+    - Paolo Ferrari
+  page-range: 204-209
+  parent:
+    type: book
+    title: 2024 IEEE International Workshop on Metrology for Industry 4.0 & IoT (MetroInd4.0 & IoT)
+    year: 2024
+    publisher: IEEE
+
+Klefstad2005:
+  type: article
+  title: A distributed, scalable, and synchronized framework for large-scale microscopic traffic simulation
+  author:
+    - Raymond Klefstad
+    - Yue Zhang
+    - Mingjie Lai
+    - R. Jayakrishnan
+    - Riju Lavanya
+  page-range: 813-818
+  parent:
+    type: book
+    title: Proceedings. 2005 IEEE Intelligent Transportation Systems
+    year: 2005
+    publisher: IEEE
+
+Suzumura2015:
+  type: article
+  title: A high performance multi-modal traffic simulation platform and its case study with the Dublin city
+  author:
+    - Toyotaro Suzumura
+    - Gavin McArdle
+    - Hiroki Kanezashi
+  page-range: 767-778
+  parent:
+    type: book
+    title: 2015 Winter Simulation Conference (WSC)
+    year: 2015
+    publisher: IEEE
+
+Umemoto2019:
+  type: article
+  title: Large-scale parallel execution of urban-scale traffic simulation and its performance on K computer
+  author:
+    - Daigo Umemoto
+    - Nobuyasu Ito
+  page-range: 97-101
+  parent:
+    type: periodical
+    title: Journal of Computational Social Science
+    volume: 2
+    number: 1
+    year: 2019
+    publisher: Springer
+
+Franchi2021:
+  type: article
+  title: PAVSP, a parallel autonomous vehicle simulation pipeline on High-Performance Computing
+  author:
+    - Matthew Franchi
+    - Rebecca Kahn
+    - Linh Ngo
+    - Sakib Khan
+    - Mashrur Chowdhury
+    - Ken Kennedy
+    - Amy Apon
+  year: 2021
+
+Arroyave2018:
+  type: article
+  title: A new strategy for synchronizing traffic flow on a distributed simulation using SUMO
+  author:
+    - Nicolas Arroyave
+    - Andrés Acosta
+    - Jorge Espinosa Oviedo
+    - Jairo Espinosa Oviedo
+  year: 2018
+
+Chen2020:
+  type: article
+  title: QarSUMO; A Parallel, Congestion-optimized Traffic Simulator
+  author:
+    - Hao Chen
+    - Ke Yang
+    - Stefano Giovanni Rizzo
+    - Giovanna Vantini
+    - Phillip Taylor
+    - Xiaosong Ma
+    - Sanjay Chawla
+  parent:
+    type: book
+    title: Proceedings of the 28th International Conference on Advances in Geographic Information Systems
+    year: 2020
+    publisher: ACM
+
+Karypis1998:
+  type: article
+  title: A Fast and High-Quality Multilevel Scheme for Partitioning Irregular Graphs
+  author:
+    - George Karypis
+    - Vipin Kumar
+  page-range: 359-392
+  parent:
+    type: periodical
+    title: SIAM Journal on Scientific Computing
+    volume: 20
+    number: 1
+    year: 1998
+
+Duarouter:
+  type: web
+  title: Duarouter
+  author: German Aerospace Center
+  year: 2015
+  url: https://sumo.dlr.de/docs/duarouter.html
+
+Randomtrips:
+  type: web
+  title: Randomtrips
+  author: German Aerospace Center
+  year: 2015
+  url: https://sumo.dlr.de/docs/Tools/Trip.html
+
+Singularity:
+  type: web
+  title: Introduction to Singularity
+  author: Sylabs Inc.
+  url: https://docs.sylabs.io/guides/3.5/user-guide/introduction.html
+
+Younge2017:
+  type: article
+  title: A Tale of Two Systems; Using Containers to Deploy HPC Applications on Supercomputers and Clouds
+  author:
+    - Andrew J. Younge
+    - Kevin Pedretti
+    - Ryan E. Grant
+    - Ron Brightwell
+  page-range: 74-81
+  parent:
+    type: book
+    title: 2017 IEEE International Conference on Cloud Computing Technology and Science (CloudCom)
+    year: 2017
+    publisher: IEEE
+
+MPI:
+  type: web
+  title: Introduction to MPI
+  author: Carleton University
+  url: https://carleton.ca/rcs/rcdc/introduction-to-mpi/
+
+MPIVersions:
+  type: web
+  title: Message Passing Interface (MPI)
+  author:
+    - Alexander S. Gills
+    - Stephen J. Bigelow
+  url: https://www.techtarget.com/searchenterprisedesktop/definition/message-passing-interface-MPI
+
+Acosta2016:
+  type: article
+  title: Distributed Simulation in SUMO Revisited":" Strategies for Network Partitioning and Border Edges Management
+  author:
+    - Andrés Acosta
+    - Jairo Espinosa
+    - Jorge Espinosa
+  page-range: 61-71
+  parent:
+    type: book
+    title: Proceedings of the 4th SUMO User Conference
+    year: 2016
+
+libtraci:
+  type: web
+  title: Libtraci
+  author: German Aerospace Center
+  url: https://sumo.dlr.de/docs/Libtraci.html
+
+OpenMP:
+  type: book
+  title: OpenMP 5.2 Reference Guide
+  author: OpenMP Architecture Review Board
+  year: 2021
+
+SPartSim:
+  type: article
+  title: SPartSim ":" A Space Partitioning Guided by Road Network for Distributed Traffic Simulations
+  author:
+    - Anthony Ventresque
+    - Quentin Bragard
+    - Elvis S. Liu
+    - David Nowak
+    - Liam Murphy
+    - Georgios Theodoropoulos
+    - Qi Liu
+  page-range: 202-209
+  parent:
+    type: book
+    title: 2012 IEEE/ACM 16th International Symposium on Distributed Simulation and Real Time Applications
+    year: 2012
