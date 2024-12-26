@@ -609,7 +609,31 @@
 ]
 
 #capitulo(title: "Resultados")[
+    A continuación, se muestran los resultados obtenidos para el test de carga de la versión paralelizada de las simulaciones implementadas en SUMO:
+    #figure(
+        grid(
+            columns: 2,
+            gutter: 1mm,
+            image("resultados_test_de_carga/4_particiones.png", width: 70%),
+            image("resultados_test_de_carga/8_particiones.png", width: 70%),
+            image("resultados_test_de_carga/16_particiones.png", width: 70%),
+            image("resultados_test_de_carga/32_particiones.png", width: 70%),
+            image("resultados_test_de_carga/64_particiones.png", width: 70%)
+        ),
+        caption: [Resultados para la prueba de escalabilidad basada en la carga de tráfico vehicular para la versión paralelizada de SUMO.]
+    )
 
+    Asímismo, en la siguiente figura se puede apreciar la comparación de la escalabilidad entre las simulaciones ejecutadas con distintos números de particiones:
+
+    #figure(
+        grid(
+            columns: 2,
+            gutter: 1mm,
+            image("resultados_test_de_carga/conjunto.png", width: 90%),
+            image("resultados_test_de_carga/logaritmico.png", width: 90%)
+        ),
+        caption: [Comparación de escalabilidad de simulaciones ejecutadas con diferentes números de particiones.]
+    )
 ]
 
 #capitulo(title: "Discusión")[
