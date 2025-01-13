@@ -148,7 +148,7 @@ Diallo2021:
 
 Krajzewicz2003:
   type: article
-  title: The "Simulation of Urban MObility" package, An open source traffic simulation
+  title: "The 'Simulation of Urban MObility' package: An open source traffic simulation"
   author: 
     - Daniel Krajzewicz
     - Markus Hartinger
@@ -164,7 +164,7 @@ Krajzewicz2003:
 
 Codeca2015:
   type: article
-  title: Luxembourg SUMO Traffic (LUST) scenario, 24 hours of mobility for vehicular networking research
+  title: "Luxembourg SUMO Traffic (LUST) scenario: 24 hours of mobility for vehicular networking research"
   author:
     - Lara Codeca
     - Raphaël Frank
@@ -178,7 +178,7 @@ Codeca2015:
 
 Bieker2015:
   type: article
-  title: Traffic Simulation for all, a real world traffic scenario from the city of Bologna
+  title: "Traffic Simulation for all: a real world traffic scenario from the city of Bologna"
   author:
     - Laura Bieker
     - Daniel Krajzewicz
@@ -194,7 +194,7 @@ Bieker2015:
 
 Ivanov2020:
   type: article
-  title: Digital twin of city, concept overview
+  title: "Digital twin of city: concept overview"
   author: 
     - Sergey Ivanov
     - Ksenia Nikolskaya
@@ -222,7 +222,7 @@ Glaessgen2012:
 
 Shahat2021:
   type: article
-  title: City digital twin potentials; A review and research agenda
+  title: "City digital twin potentials: A review and research agenda"
   author:
     - Ehab Shahat
     - Chang T Hyun
@@ -245,7 +245,7 @@ TraCI:
 
 Argota2022:
   type: article
-  title: Getting Real; the Challenge of Building and Validating a Large-Scale Digital Twinf of Barcelona's Traffic with Empirical Data
+  title: "Getting Real: the Challenge of Building and Validating a Large-Scale Digital Twinf of Barcelona's Traffic with Empirical Data"
   author: Javier Argota Sánchez-Vaquerizo
   page-range: 24
   parent:
@@ -258,7 +258,7 @@ Argota2022:
 
 Kuvsic2022:
   type: article
-  title: Building a motorway digital twin in SUMO; Real-time simulation of continuous data stream from traffic counters
+  title: "Building a motorway digital twin in SUMO: Real-time simulation of continuous data stream from traffic counters"
   author: 
     - Krešimir Kušić
     - Rene Schumann
@@ -272,7 +272,7 @@ Kuvsic2022:
 
 Azevedo2024:
   type: book
-  title: Optimizing Vehicle IoT Systems; SUMO-Digital Twin Performance Analysis
+  title: "Optimizing Vehicle IoT Systems: SUMO-Digital Twin Performance Analysis"
   author:
     - Mariana Azevedo
     - Matheus Andrade
@@ -336,7 +336,7 @@ Umemoto2019:
 
 Franchi2021:
   type: article
-  title: PAVSP, a parallel autonomous vehicle simulation pipeline on High-Performance Computing
+  title: "PAVSP: a parallel autonomous vehicle simulation pipeline on High-Performance Computing"
   author:
     - Matthew Franchi
     - Rebecca Kahn
@@ -359,7 +359,7 @@ Arroyave2018:
 
 Chen2020:
   type: article
-  title: QarSUMO; A Parallel, Congestion-optimized Traffic Simulator
+  title: "QarSUMO: A Parallel, Congestion-optimized Traffic Simulator"
   author:
     - Hao Chen
     - Ke Yang
@@ -410,7 +410,7 @@ Singularity:
 
 Younge2017:
   type: article
-  title: A Tale of Two Systems; Using Containers to Deploy HPC Applications on Supercomputers and Clouds
+  title: "A Tale of Two Systems: Using Containers to Deploy HPC Applications on Supercomputers and Clouds"
   author:
     - Andrew J. Younge
     - Kevin Pedretti
@@ -439,7 +439,7 @@ MPIVersions:
 
 Acosta2016:
   type: article
-  title: Distributed Simulation in SUMO Revisited":" Strategies for Network Partitioning and Border Edges Management
+  title: "Distributed Simulation in SUMO Revisited: Strategies for Network Partitioning and Border Edges Management"
   author:
     - Andrés Acosta
     - Jairo Espinosa
@@ -464,7 +464,7 @@ OpenMP:
 
 SPartSim:
   type: article
-  title: SPartSim ":" A Space Partitioning Guided by Road Network for Distributed Traffic Simulations
+  title: "SPartSim : A Space Partitioning Guided by Road Network for Distributed Traffic Simulations"
   author:
     - Anthony Ventresque
     - Quentin Bragard

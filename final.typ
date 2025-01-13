@@ -121,7 +121,7 @@
         justify: true,
         first-line-indent: 15pt,
     ) // Formato de párrafos
-    show par: set block(spacing: 2em) // Espacio entre párrafos
+    set par(spacing: 2em) // Espacio entre párrafos
 
     // Workaround para que se aplique la indentación al primer párrafo luego de un heading
     // show heading: it => {
@@ -145,23 +145,46 @@
     pagebreak(weak: true)
 }
 
-#let mainmatter-section(title, doc) = {
+#let mainmatter-section(title, label, doc) = {
     let cnt = counter(heading)
     show heading.where(level: 1): it => text(size: 24pt, weight: "bold")[Capítulo #cnt.display("1") \ \ #it.body]
     v(85pt)
-    heading(
+    [#heading(
         title,
         numbering: "1.", 
         outlined: true,
         supplement: "Capítulo",
-    )
-    v(30pt)
+    ) #label] // Para añadir la label, debe estar en modo markup
+    v(5pt)
     doc
     pagebreak(weak: true)
 }
-
-#let resumen(doc) = {
-    frontmatter-section(title: "Resumen", doc)
+#let resumen(
+    titulo: none,
+    autor: none, // diccionario con nombre y pronombre, (nombre: "", pronombre: pronombre.<el/ella/elle>) 
+    tesis: false, // false para memoria, true para tesis
+    grado-titulo: "???", // especificar el grado o título al que se opta
+    profesores: (), // si es solo un profesor guía, una lista de un elemento es ((nombre: "nombre apellido", pronombre: pronombre.<el/ella/elle>),)
+    anno: none, // si no se especifica, se usa el año actual
+    doc,
+) = {
+    let _memoria = [MEMORIA PARA OPTAR AL TÍTULO DE INGENIER#autor.pronombre.titulo CIVIL EN #grado-titulo]
+    let _tesis = [TESIS PARA OPTAR AL TÍTULO DE INGENIER#autor.pronombre.titulo CIVIL EN #grado-titulo Y MAGÍSTER EN CIENCIAS, MENCIÓN #grado-titulo]
+    let _documento = if tesis [#_tesis] else [#_memoria]
+    let _resumen = [RESUMEN DE LA #_documento]
+    let _anno = if anno != none [#anno] else [#datetime.today().year()]
+    // añadir bloque de resumen
+    stack(dir: ltr,
+        1fr,
+        block(
+            width: 50%,
+            [#set text(size: 11pt, hyphenate: false); #_resumen \ POR: #upper(autor.nombre) \ FECHA: #_anno \ PROF. GUIA: #profesores.at(0).nombre],
+        )
+    )
+    show heading: it => {set text(size: 12pt, hyphenate: false); align(center, it)}
+    heading(titulo, numbering: none, outlined: false)
+    doc
+    pagebreak(weak: true)
 }
 
 #let agradecimientos(doc) = {
@@ -212,12 +235,38 @@
     toc
     tot
     toi
-    show page: set page(numbering: "1")
+    set page(numbering: "1")
     set heading(numbering: "1.1.")
     counter(page).update(1)
     doc
 }
 
-#let capitulo(title: "", doc) = {
-    mainmatter-section(title, doc)
+#let end-doc(bib-file: "bibliografia.yml", doc) = {
+    bibliography(bib-file, title: "Bibliografía", style: "ieee")
+    counter(heading).update(0)
+    pagebreak(weak: true)
+    doc
+}
+
+#let capitulo(title: "", label: none, doc) = {
+    mainmatter-section(title, label, doc)
+}
+
+#let backmatter-section(title, label, doc) = {
+    let cnt = counter(heading)
+    show heading.where(level: 1): it => text(size: 24pt, weight: "bold")[Anexo #cnt.display("A") \ \ #it.body]
+    v(85pt)
+    [#heading(
+        title,
+        numbering: "A.",
+        outlined: true,
+        supplement: "Anexo",
+    ) #label] // Para añadir la label, debe estar en modo markup
+    v(30pt)
+    doc
+    pagebreak(weak: true)
+}
+
+#let apendice(title: "", label: none, doc) = {
+    backmatter-section(title, label, doc)
 }
