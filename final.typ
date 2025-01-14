@@ -66,7 +66,7 @@
     ]
 
     let _memoria = [MEMORIA PARA OPTAR AL TÍTULO DE \ INGENIER#autor.pronombre.titulo CIVIL EN #grado-titulo]
-    let _tesis = [TESIS PARA OPTAR AL TÍTULO DE \ INGENIER#autor.pronombre.titulo CIVIL EN #grado-titulo Y \ MAGÍSTER EN CIENCIAS, MENCIÓN #grado-titulo]
+    let _tesis = [TESIS PARA OPTAR AL TÍTULO DE MAGÍSTER EN CIENCIAS, MENCIÓN #grado-titulo \ \ MEMORIA PARA OPTAR AL TÍTULO DE \ INGENIER#autor.pronombre.titulo CIVIL EN #grado-titulo]
     let _documento = if tesis [#_tesis] else [#_memoria]
     let _guia(gen: pronombre.el) = [PROFESOR#gen.guia GUÍA]
     let _coguia(gen: pronombre.el) = [PROFESOR#gen.guia CO-GUÍA]
