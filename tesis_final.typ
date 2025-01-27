@@ -3,10 +3,10 @@
 #import "@preview/cades:0.3.0": qr-code
 #let mostrar_guias = false
 #show: conf.with(
-    titulo: "Paralelización de procesos de modelamiento de tráfico urbano por medio de la contenerización del software Simulation of Urban MObility (SUMO) para Supercomputadores",
+    titulo: "PARALELIZACIÓN DE PROCESOS DE MODELAMIENTO DE TRÁFICO URBANO POR MEDIO DE LA CONTENERIZACIÓN DEL SOFTWARE SIMULATION OF URBAN MOBILITY (SUMO) PARA SUPERCOMPUTADORES",
     autor: (nombre: "Pablo Villar Mascaró", pronombre: pronombre.elle),
-    profesores: ((nombre: "Javier Bustos Jiménez", pronombre: pronombre.el),),
-    coguias: ((nombre: "Patricio Reyes", pronombre: pronombre.el),),
+    profesores: ((nombre: "JAVIER BUSTOS JIMÉNEZ", pronombre: pronombre.el),),
+    coguias: ((nombre: "PATRICIO REYES", pronombre: pronombre.el),),
     comision: ("NOMBRE COMPLETO UNO", "NOMBRE COMPLETO DOS", "NOMBRE COMPLETO TRES"),
     anno: "2025",
     tesis: true,
@@ -20,7 +20,7 @@
     tesis: true,
     grado-titulo: "COMPUTACIÓN",
     anno: "2025",
-    profesores: ((nombre: "Javier Bustos Jiménez", pronombre: pronombre.el),),
+    profesores: ((nombre: "JAVIER BUSTOS JIMÉNEZ", pronombre: pronombre.el),),
 )[
     El presente trabajo de tesis aborda la problemática del escalamiento de simulaciones de tráfico vehicular urbano para su uso en el modelamiento de flujos de tráfico a nivel microscópico a través de grandes áreas metropolitanas. Se encuentra orientado a su implementación en ambientes de supercomputación, insertándose en un proyecto conjunto entre NIC Chile Research Labs y el _Barcelona Supercomputing Center_ (BSC) para el desarrollo de gemelos digitales para las ciudades de Barcelona y Kobe (Japón).
 
@@ -59,6 +59,15 @@
 
 
   El proyecto se dividió en tres etapas, a ser: la partición y contenerización de las simulaciones, la paralelización de las mismas, y la determinación de los parámetros necesarios para la comunicación entre los procesos de simulación. En las tres etapas se hizo uso de _Singularity Containers_, mientras que en la segunda y tercera se sumó el uso de _OpenMP_.
+
+  El presente informe se divide en siete capítulos, a ser: 
+  - *Problema*: donde se plantea el problema de investigación y se presentan los resultados de la primera prueba de escalabilidad de SUMO.
+  - *Preguntas de investigación, hipótesis y objetivos*: donde se postulan las preguntas de investigación, de las cuales se desprenden la hipótesis y los objetivos de este trabajo.
+  - *Solución propuesta*: donde se detalla la creación de la solución propuesta, su desarrollo, avances y los impedimentos presentados en el camino.
+  - *Marco teórico*: donde se profundizan y estudian materias relacionadas a la solución propuesta, tales como distintos simuladores de tráfico existentes y trabajos orientados al desarrollo de simulaciones en ambientes de _High-Performance Computing_.
+  - *Resultados*: donde se presentan los resultados obtenidos de la medición de los tiempos de simulación para la solución propuesta, su _speedup_ y su eficiencia.
+  - *Discusión*: donde se analizan los resultados obtenidos, considerando detalles importantes del proceso de paralelización.
+  - *Conclusiones*: donde se concluye el trabajo y se da cuenta de los posibles trabajos futuros a desarrollar a partir de éste.
 ]
 
 #capitulo(title: "Problema")[
@@ -120,7 +129,7 @@
 
   === Prueba de escalabilidad basada en el número de agentes por simulación para computadores personales
 
-  Por otro lado, en orden de testear la escalabilidad de las simulaciones respecto al número de agentes, se determina una red de caminos de tamaño fijo sobre la ciudad de Barcelona y se crean las simulaciones correspondientes con _randomTrips.py_ y _duarouter_. El _pipeline_ para este experimento se muestra en la Figura 5.
+  Por otro lado, en orden de testear la escalabilidad de las simulaciones respecto al número de agentes, se determina una red de caminos de tamaño fijo sobre la ciudad de Barcelona y se crean las simulaciones correspondientes con _randomTrips.py_ y _duarouter_. El _pipeline_ para este experimento se muestra en la @pipeline.
 
   #figure(
       diagram(
@@ -154,7 +163,7 @@
           edge(<trips>, <rou>, "-|>"),
       ),
       caption: [_Pipeline_ para simulaciones basadas en la carga de tráfico vehicular.]
-  )
+  )<pipeline>
 
   Para poder incrementar de manera uniforme la cantidad de vehículos presentes en la simulación, se configuró la tasa de inserciones de agentes de _randomTrips.py_ @Randomtrips para tomar valores decrecientes en el intervalo [0.025, 1.0], mientras que la configuración de _duarouter_ no fue alterada.
 
@@ -637,39 +646,117 @@
 ]
 
 #capitulo(title: "Resultados")[
-  A continuación, se muestran los resultados obtenidos para el test de carga de la versión paralelizada de las simulaciones implementadas en SUMO:
-  #figure(
-      grid(
-          columns: 2,
-          gutter: 1mm,
-          image("resultados_test_de_carga/1_particion_fixed.png", width: 71%),
-          image("resultados_test_de_carga/4_particiones_fixed.png", width: 71%),
-          image("resultados_test_de_carga/8_particiones_fixed.png", width: 71%),
-          image("resultados_test_de_carga/16_particiones_fixed.png", width: 71%),
-          image("resultados_test_de_carga/32_particiones_fixed.png", width: 71%),
-          image("resultados_test_de_carga/64_particiones_fixed.png", width: 71%)
-      ),
-      caption: [Resultados para la prueba de escalabilidad basada en la carga de tráfico vehicular para la versión paralelizada de SUMO.]
-  ) <figura_10>
-
-  Asímismo, en la siguiente figura se puede apreciar la comparación de la escalabilidad entre las simulaciones ejecutadas con distintos números de particiones:
+  A continuación, se muestran los resultados obtenidos para el test de carga de la versión paralelizada de las simulaciones implementadas en SUMO, considerando para ello las distintas frecuencias de inserción de vehículos definidas para cada _set_ de simulaciones y los tiempos de ejecución promedio para cada una. Para estas mediciones, se consideraron cinco conjuntos de particiones de diferentes tamaños: 4, 8, 16, 32 y 64 particiones. Para cada uno de estos conjuntos, se ejecutaron 1000 simulaciones, a saber, 50 simulaciones por cada frecuencia de inserción de vehículos definida.
 
   #figure(
       grid(
           columns: 2,
           gutter: 1mm,
-          image("resultados_test_de_carga/conjunto_fixed.png", width: 90%),
-          image("resultados_test_de_carga/logaritmico_fixed.png", width: 90%)
+          image("graficos/1_particion.png", width: 91%),
+          image("graficos/4_particiones.png", width: 91%)
       ),
-      caption: [Comparación de escalabilidad de simulaciones ejecutadas con diferentes números de particiones.]
-  ) <Figura_11>
-
-  Por otro lado, es posible observar el contraste en el escalamiento con la versión secuencial (es decir, una simulación de una sola partición) en el siguiente gráfico:
+      caption: [Resultados para la prueba de escalabilidad basada en la carga de tráfico vehicular para la versión paralelizada de SUMO para 1 y 4 particiones.]
+  ) <figura_11>
 
   #figure(
-      image("resultados_test_de_carga/comparativo_fixed.png", width: 70%),
+    grid(
+        columns: 2,
+        gutter: 1mm,
+        image("graficos/8_particiones.png", width: 91%),
+        image("graficos/16_particiones.png", width: 91%),
+    ),
+    caption: [Resultados para la prueba de escalabilidad basada en la carga de tráfico vehicular para la versión paralelizada de SUMO para 8 y 16 particiones.]
+  ) <figura_12>
+
+  #figure(
+    grid(
+        columns: 2,
+        gutter: 1mm,
+        image("graficos/32_particiones.png", width: 91%),
+        image("graficos/64_particiones.png", width: 91%)
+    ),
+    caption: [Resultados para la prueba de escalabilidad basada en la carga de tráfico vehicular para la versión paralelizada de SUMO para 32 y 64 particiones.]
+  ) <figura_13>
+
+Como es posible observar, la cota superior para el crecimiento de los tiempos de simulación para cada conjunto de particiones disminuye significativamente en comparación a una versión secuencial de éstas (es decir, una simulación que considera una única partición). Un detalle importante a observar dentro de estos resultados radica en la cota superior para las ejecuciones de los _sets_ de 64 particiones, ya que se muestra ligeramente mayor respecto a la cota para los _sets_ de 32 particiones.
+
+Para estudiar más a fondo la escalabilidad de la solución propuesta, resulta necesario realizar una comparación entre los crecimientos de los tiempos de simulación para cada conjunto de particiones, además de contrastarlos con la versión secuencial. El siguiente gráfico muestra dichas diferencias, mostrando el comportamiento de cada conjunto de particiones al momento de ejecutar cada simulación para cada frecuencia de inserción definida:
+
+  #figure(
+      image("graficos/comparativo.png", width: 90%),
       caption: [Comparación de escalabilidad de simulaciones con su versión secuencial.]
-  )
+  )<figura_14>
+
+De aquí es posible observar que, si bien para frecuencias pequeñas no resulta eficiente una paralelización con 32 y 64 particiones, a medida que se aumenta el número de particiones los tiempos de simulación exhiben un comportamiento mucho más lineal, mientras que para altas tasas de inserción de vehículos, en la mayoría de los casos los tiempos de simulación tienden a converger, lo cual deja interpretar que, en casos de simulaciones con alta congestión de tráfico vehicular, no resulta más eficiente la solución que posea mayor número de particiones.
+
+Por otro lado, el _speedup_ para cada _set_ de simulaciones, es decir, la medida de aceleración de la solución, se calcula mediante la razón entre los tiempos originales de ejecución y los tiempos de ejecución de la solución propuesta. Mediante dicho cálculo, se obtuvieron los resultados que se muestran en las siguientes tablas, los cuales muestran que en gran parte de los casos, logró obtenerse un speedup superior al 5% esperado:
+
+#let speedup_4 = csv("resultados_csv/speedup_4.csv")
+#let speedup_8 = csv("resultados_csv/speedup_8.csv")
+#stack(
+    dir: ltr,
+    1fr,
+    figure(
+        table(
+        columns: 3,
+        ..speedup_4.flatten()
+        ),
+        caption: [Speedup para 4 particiones]
+    ),
+    1fr,
+    figure(
+        table(
+        columns: 3,
+        ..speedup_8.flatten()
+        ),
+        caption: [Speedup para 8 particiones]
+    ),
+    1fr
+)<speedup_1>
+
+#let speedup_16 = csv("resultados_csv/speedup_16.csv")
+#let speedup_32 = csv("resultados_csv/speedup_32.csv")
+#let speedup_64 = csv("resultados_csv/speedup_64.csv")
+#stack(
+    dir: ltr,
+    spacing: 1fr,
+    figure(
+        table(
+        columns: 3,
+        ..speedup_16.flatten()
+        ),
+        caption: [Speedup para 16 particiones]
+    ),
+    figure(
+        table(
+        columns: 3,
+        ..speedup_32.flatten()
+        ),
+        caption: [Speedup para 32 particiones]
+    )
+)<speedup_2>
+
+#figure(
+    table(
+        columns: 3,
+        ..speedup_64.flatten()
+    ),
+    caption: [Speedup para 64 particiones]
+)<speedup_3>
+
+El siguiente gráfico muestra con mayor claridad la variación del _speedup_ para cada set de simulaciones. Aquí es posible observar que, a medida que aumentamos el número de particiones, la tendencia general del _speedup_ de las simulaciones para cada punto mejorará; sin embargo, para simulaciones con alta carga de tráfico vehicular, la _performance_ de la solución propuesta disminuirá, llegando a ser similar a la solución secuencial:
+
+#figure(
+    image("graficos/speedup.png", width: 70%),
+    caption: [Comparación del _speedup_ para distintos conjuntos de particiones.]
+) <speedup>
+
+Por otro lado, es posible calcular la eficiencia de la paralelización mediante la razón entre el _speedup_ y el número de particiones realizadas. Esto nos da una idea de qué tan eficiente es la solución en relación a la versión secuencial (ejecutada mediante un solo nodo). Los resultados obtenidos de este cálculo se resumen en el siguiente gráfico, el cual muestra que la mayor eficiencia se obtiene con números bajos de particiones (menor a 32):
+
+#figure(
+    image("graficos/efficiency.png", width: 70%),
+    caption: [Comparación de la eficiencia de paralelización para distintos conjuntos de particiones.]
+)<eficiencia>
 
   En cuanto al uso de CPU para cada set de simulaciones, se obtiene el siguiente gráfico comparativo entre la escalabilidad de cada número de particiones realizadas:
 
@@ -680,9 +767,11 @@
 ]
 
 #capitulo(title: "Discusión", label: <discusion>)[
-  Como es posible observar de la @figura_10, existe una gran diferencia entre la escalabilidad de la versión secuencial de una simulación y las versiones paralelizadas, teniendo estas últimas una cota superior considerablemente inferior a la cota superior de tiempo de las simulaciones no paralelizadas, lo cual muestra que las versiones paralelas de las simulaciones son más eficientes en cuanto al tiempo de ejecución de éstas.
+  Como es posible observar de la @figura_11, la @figura_12 y la @figura_13, existe una gran diferencia entre la escalabilidad de la versión secuencial de una simulación y las versiones paralelizadas, teniendo estas últimas una cota superior considerablemente inferior a la cota superior de tiempo de las simulaciones no paralelizadas, lo cual muestra que las versiones paralelas de las simulaciones son más eficientes en cuanto al tiempo de ejecución de éstas.
 
-  Adicionalmente, es posible extraer de la @Figura_11 que, a medida que se aumenta la cantidad de particiones, el escalamiento de las simulaciones aparenta ser cada vez más lineal, implicando también un mayor costo para las simulaciones con menor tasa de inserción de vehículos para simulaciones de grandes cantidades de particiones, pero un menor crecimiento en cuanto a los tiempos de ejecución de las simulaciones.
+  Adicionalmente, es posible extraer de la @figura_14 que, a medida que se aumenta la cantidad de particiones, el escalamiento de las simulaciones aparenta ser cada vez más lineal, implicando también un mayor costo para las simulaciones con menor tasa de inserción de vehículos para simulaciones de grandes cantidades de particiones, pero un menor crecimiento en cuanto a los tiempos de ejecución de las simulaciones.
+
+  Asímismo, el aumento en el _speedup_ mostrado en la @speedup nos muestra que, si bien es posible llegar a tener tiempos hasta 40 veces mejores que en una versión secuencial para escenarios con una inserción de autos moderada, para escenarios con altas tasas de tráfico la _performance_ tiende a descender. En cuanto a la eficiencia de la solución planteada, la @eficiencia nos muestra que para un número de particiones también moderada (es decir, menor a 32 particiones), se tiene una alta eficiencia sobre los tiempos de simulación para frecuencias de generación de vehículos que se encuentran alrededor y bajo la mediana, mientras que para escenarios con mayor congestión de tráfico la eficiencia de la solución propuesta tiende a ser más baja.
 
   Cabe considerar en estos resultados dos aspectos importantes: el balance de las cargas en las particiones y la pérdida de información al realizar el corte de rutas.
 
@@ -941,4 +1030,114 @@
     <gui_only/>
 </configuration>
     ```
+
+    #pagebreak()
+    == Resultados para tiempos de ejecución de simulaciones secuenciales
+    #let results_1 = csv("resultados_csv/results_1_partitions.csv")
+    #figure(
+        table(
+        columns: 2,
+        ..results_1.flatten()
+        ),
+        caption: [Tiempos para simulación secuencial]
+    )
+    #pagebreak()
+    == Resultados para tiempos de ejecución de simulaciones paralelizadas
+
+    #linebreak()
+    #let results_4 = csv("resultados_csv/results_4_partitions.csv")
+    #let results_8 = csv("resultados_csv/results_8_partitions.csv")
+    #let results_16 = csv("resultados_csv/results_16_partitions.csv")
+    #stack(
+        dir: ltr,
+        spacing: 1fr,
+        figure(
+            table(
+            columns: 2,
+            ..results_4.flatten()
+            ),
+            caption: [4 particiones]
+        ),
+        figure(
+            table(
+            columns: 2,
+            ..results_8.flatten()
+            ),
+            caption: [8 particiones]
+        ),
+        figure(
+            table(
+            columns: 2,
+            ..results_16.flatten()
+            ),
+            caption: [16 particiones]
+        )
+    )
+    
+    #pagebreak()
+    #let results_32 = csv("resultados_csv/results_32_partitions.csv")
+    #let results_64 = csv("resultados_csv/results_64_partitions.csv")
+    #stack(
+        dir: ltr,
+        1fr,
+        figure(
+            table(
+            columns: 2,
+            ..results_32.flatten()
+            ),
+            caption: [32 particiones]
+        ),
+        1fr,
+        figure(
+            table(
+            columns: 2,
+            ..results_64.flatten()
+            ),
+            caption: [64 particiones]
+        ),
+        1fr
+    )
+    
+    #pagebreak()
+    == Resultados para la eficiencia de paralelización de la solución propuesta
+    #let ef_4 = csv("resultados_csv/efficiency_4.csv")
+    #let ef_8 = csv("resultados_csv/efficiency_8.csv")
+    #figure(
+        table(
+            columns: 4,
+            ..ef_4.flatten()
+        ),
+        caption: [Eficiencia calculada para 4 particiones]
+    )
+    #figure(
+        table(
+            columns: 4,
+            ..ef_8.flatten()
+        ),
+        caption: [Eficiencia calculada para 8 particiones]
+    )
+    #let ef_16 = csv("resultados_csv/efficiency_16.csv")
+    #let ef_32 = csv("resultados_csv/efficiency_32.csv")
+    #let ef_64 = csv("resultados_csv/efficiency_64.csv")
+    #figure(
+        table(
+            columns: 4,
+            ..ef_16.flatten()
+        ),
+        caption: [Eficiencia calculada para 16 particiones]
+    )
+    #figure(
+        table(
+            columns: 4,
+            ..ef_32.flatten()
+        ),
+        caption: [Eficiencia calculada para 32 particiones]
+    )
+    #figure(
+        table(
+            columns: 4,
+            ..ef_64.flatten()
+        ),
+        caption: [Eficiencia calculada para 64 particiones]
+    )
 ]

@@ -5,7 +5,7 @@
 
   Le debo la realización de este trabajo también a mi compañero de vida, Christopher Marín, Puntito, por ayudarme continuamente a depurar código, corazón y cabeza con su infinito amor, sabiduría y paciencia. Por todos estos meses de atravesar un camino incierto con la certeza de tu cariño y la esperanza de seguir construyendo juntos nuevos proyectos, nuevos juegos y nuevos horizontes.
 
-  A Fran Zautzik, por esas conversaciones interminables con un tecito en mi departamento sobre nuestros trabajos que nos trajeron tantas ideas que en cierta medida nos hicieron avanzar y por acompañarme a aguantar hasta lograr lo que había que lograr.
+  A Fran Zautzik y Salvador Alveal, por esas conversaciones interminables con un tecito en mi departamento sobre nuestros trabajos que nos trajeron tantas ideas que en cierta medida nos hicieron avanzar y por acompañarme a aguantar hasta lograr lo que había que lograr.
 
   A mi familia, por su apoyo continuo y por soportarme en los peores tiempos para que al fin pudiera llegar a este punto.
 
