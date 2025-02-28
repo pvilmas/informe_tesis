@@ -1,6 +1,7 @@
 #import "final.typ": conf, guia, pronombre, resumen, dedicatoria, agradecimientos, start-doc, capitulo, end-doc, apendice
 #import "@preview/fletcher:0.5.1" as fletcher: diagram, node, edge
 #import "@preview/cades:0.3.0": qr-code
+#import "@preview/lovelace:0.3.0": *
 #let mostrar_guias = false
 #show: conf.with(
     titulo: "PARALELIZACIÓN DE PROCESOS DE MODELAMIENTO DE TRÁFICO URBANO POR MEDIO DE LA CONTENERIZACIÓN DEL SOFTWARE SIMULATION OF URBAN MOBILITY (SUMO) PARA SUPERCOMPUTADORES",
@@ -238,7 +239,7 @@
   + *Particionamiento de modelos*: refiere a la partición de modelos de simulación en submodelos que pueden ser ejecutados en paralelo, lo cual puede ayudar a reducir los costos de comunicación y mejorar la escalabilidad de las simulaciones.
   + *Simulaciones cloud-based*: implica la ejecución de modelos de simulación en Cloud Computing, lo que ofrece la oportunidad de tener simulaciones más flexibles y escalables. Sin embargo, la latencia de la red y las posibles amenazas en torno a la seguridad de los datos son desventajas que esta opción presenta.
 
-  Un estudio que aborda el problema de la paralelización de SUMO refiere al estudio llevado a cabo por Arroyave et. al. @Arroyave2018, en donde se presenta un modelo de particiones de mapa simplificadas para la simulación en paralelo de tráfico en zonas urbanas. Este modelo consiste en la división de las redes de caminos en forma de cuadrículas, lo cual incrementa el nivel de error de la simulación de manera proporcional con el número de particiones realizadas al momento de simular, dado que las particiones no resultan ser precisas respecto a la topología de la red. Además de esto, dicho estudio señala que el método de paralelización presentado es más lento que su contraparte centralizada dado el proceso de sincronización implementado. Esto plantea la necesidad de abordar el problema desde una perspectiva que considere un esquema de partición de grafos más eficiente, que permita distribuir mejor la carga vehicular en los nodos de simulación.
+  Un estudio que aborda el problema de la paralelización de SUMO refiere al estudio llevado a cabo por Arroyave et. al., en donde se presenta un modelo de particiones de mapa simplificadas para la simulación en paralelo de tráfico en zonas urbanas. Este modelo consiste en la división de las redes de caminos en forma de cuadrículas, lo cual incrementa el nivel de error de la simulación de manera proporcional con el número de particiones realizadas al momento de simular, teniendo un error que "crece de manera proporcional al número de particiones con luces de tráfico o cualquier otra condición que se vea afectada por un ciclo de luces de tráfico" @Arroyave2018. Además de esto, dicho estudio señala que el método de paralelización presentado es más lento que su contraparte centralizada dado el proceso de sincronización implementado. Esto plantea la necesidad de abordar el problema desde una perspectiva que considere un esquema de partición de grafos más eficiente, que permita distribuir mejor la carga vehicular en los nodos de simulación.
 
   Por otro lado, el trabajo titulado "QarSUMO: A Parallel, Congestion-optimized Traffic Simulator" @Chen2020, presenta una versión paralelizada de SUMO considerando la complejidad de la distribución de las redes de caminos por medio de la implementación de un esquema de partición de grafos no-regulares, abreviado como METIS @Karypis1998. Si bien este estudio logra establecer un método de paralelización de alto nivel, incrementando la eficiencia de las simulaciones para situaciones de alta congestión de tráfico, su alcance en cuanto a áreas urbanas no alcanza una escalabilidad a nivel de simulaciones completas al no considerar su implementación en ambientes de _High-Performance Computing_. Sumado a esto, el _software_ disminuye el nivel de granularidad de las simulaciones por medio de la simplificación del modelamiento de un gran número de vehículos a una sola entidad. Esto plantea, a su vez, la posibilidad de obtener un mejor escalamiento y una mejor tasa de granularidad en las simulaciones teniendo una mayor capacidad de cómputo, como es el caso de los supercomputadores.
     
@@ -261,6 +262,53 @@
   Dado el contexto en el que este trabajo se inserta, los mapas utilizados para las pruebas de concepto y la posterior ejecución de los test de carga corresponden a las áreas de Barcelona y Viladecans, ambas ciudades de la región de Cataluña, España.
 
   == Herramientas utilizadas
+  === _SPartSim_
+  _SPartSim_ es un algoritmo de partición de grafos de crecimiento de regiones, esto es, que partiendo desde un vértice inicial, hace crecer cada partición en todas direcciones, hasta que ninguna pueda seguir creciendo. Dicho algoritmo se describe a continuación:
+
+  #figure(
+    kind: "algorithm",
+    supplement: [Algoritmo],
+    pseudocode-list(booktabs: true, numbered-title: [_SPartSim_])[
+        #h(7pt)*input* : A road network $G=(V,A,omega)$; _n_ the number
+        #linebreak()
+        of partitions wanted; $epsilon$ an acceptable unbalance of 
+        #linebreak()
+        the partitioning.
+        #linebreak()
+        *output* : $pi(G,n)$ a road network partitioning
+        + *begin*
+            - \/\/ Initialisation
+            + stop $\u{2190}$ new array of size $n$;
+            + *for* i $\u{2190}$ 1 *to* $n$ *do*
+                + $gamma_i \u{2190}$ BestCandidateVertex();
+                + stop[$i$] $\u{2190}$ 1;
+            - \/\/ Region growing
+            + *while* stop $\u{2260} emptyset$ *do*
+                + *for* $i \u{2190} 1$ *to* $n$ *do*
+                    + *if* stop[$i$] $\u{2260} 0$ *then*
+                        + hasGrown $\u{2190}$ Grow($gamma_i$);
+                        + *if* hasGrown *then*
+                            + stop[$i$] $\u{2190} 0$;
+            - \/\/ Balance partitioning
+            + balanced $\u{2190}$ false;
+            + *while* $not$ balanced $or$ enough iterations *do*
+                + $gamma_i = max pi(G,n)$;
+                + $gamma_j = min pi(G,n)$;
+                + *if* $abs(gamma_(i)[V]) - epsilon < frac(abs(G[V]), n) < abs(gamma_(j)[V]) + epsilon$ *then*
+                    + balanced $\u{2190}$ true;
+                + *else*
+                    + Trade($gamma_i, gamma_j$);
+            - \/\/ Ensure conectivity
+            + *foreach* $gamma_i$ *do*
+                + ComputeConnectedSubgraphs($gamma_i$);
+            + *foreach* connected component $"cc"^j_gamma_i$ *do*
+                + Attach($"cc"^j_gamma_i$);
+        + *end*
+    ],
+    caption: [Descripción del algoritmo _SPartSim_ (Adaptado de @SPartSim)]
+  )
+
+   
   === _Singularity Containers_
   _Singularity_ es un proyecto _open-source_ que permite la creación de contenedores de forma portable y reproducible @Singularity. A diferencia de _Docker_, _Singularity_ fue creado para ejecutar aplicaciones complejas en _clusters_ HPC, cobrando popularidad de manera significativa para su uso en supercomputadores; sin embargo, es posbile construir contenedores de _Singularity_ a partir de contenedores de _Docker_.
 
