@@ -478,3 +478,18 @@ SPartSim:
     type: book
     title: 2012 IEEE/ACM 16th International Symposium on Distributed Simulation and Real Time Applications
     year: 2012
+
+Serrano2025:
+  type: web
+  title: "Comparación de Algoritmos de Partición de Grafos: METIS vs. SPartSim"
+  author: 
+    - Valeria Serrano 
+    - Javier Bustos Jiménez
+    - Lucie Roy
+  url: https://github.com/ValeriaSerrano/RoadNetworkPartitioning
+
+Roy2025:
+  type: web
+  title: Road Network Partitioning
+  author: Lucie Roy
+  url: https://github.com/Lulu1234/RoadNetworkPartitioning

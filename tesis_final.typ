@@ -241,7 +241,7 @@
 
   Un estudio que aborda el problema de la paralelización de SUMO refiere al estudio llevado a cabo por Arroyave et. al., en donde se presenta un modelo de particiones de mapa simplificadas para la simulación en paralelo de tráfico en zonas urbanas. Este modelo consiste en la división de las redes de caminos en forma de cuadrículas, lo cual incrementa el nivel de error de la simulación de manera proporcional con el número de particiones realizadas al momento de simular, teniendo un error que "crece de manera proporcional al número de particiones con luces de tráfico o cualquier otra condición que se vea afectada por un ciclo de luces de tráfico" @Arroyave2018. Además de esto, dicho estudio señala que el método de paralelización presentado es más lento que su contraparte centralizada dado el proceso de sincronización implementado. Esto plantea la necesidad de abordar el problema desde una perspectiva que considere un esquema de partición de grafos más eficiente, que permita distribuir mejor la carga vehicular en los nodos de simulación.
 
-  Por otro lado, el trabajo titulado "QarSUMO: A Parallel, Congestion-optimized Traffic Simulator" @Chen2020, presenta una versión paralelizada de SUMO considerando la complejidad de la distribución de las redes de caminos por medio de la implementación de un esquema de partición de grafos no-regulares, abreviado como METIS @Karypis1998. Si bien este estudio logra establecer un método de paralelización de alto nivel, incrementando la eficiencia de las simulaciones para situaciones de alta congestión de tráfico, su alcance en cuanto a áreas urbanas no alcanza una escalabilidad a nivel de simulaciones completas al no considerar su implementación en ambientes de _High-Performance Computing_. Sumado a esto, el _software_ disminuye el nivel de granularidad de las simulaciones por medio de la simplificación del modelamiento de un gran número de vehículos a una sola entidad. Esto plantea, a su vez, la posibilidad de obtener un mejor escalamiento y una mejor tasa de granularidad en las simulaciones teniendo una mayor capacidad de cómputo, como es el caso de los supercomputadores.
+  Por otro lado, el trabajo titulado "QarSUMO: A Parallel, Congestion-optimized Traffic Simulator" @Chen2020, presenta una versión paralelizada de SUMO considerando la complejidad de la distribución de las redes de caminos por medio de la implementación de un esquema de partición de grafos no-regulares, abreviado como `METIS` @Karypis1998. Si bien este estudio logra establecer un método de paralelización de alto nivel, incrementando la eficiencia de las simulaciones para situaciones de alta congestión de tráfico, su alcance en cuanto a áreas urbanas no alcanza una escalabilidad a nivel de simulaciones completas al no considerar su implementación en ambientes de _High-Performance Computing_. Sumado a esto, el _software_ disminuye el nivel de granularidad de las simulaciones por medio de la simplificación del modelamiento de un gran número de vehículos a una sola entidad. Esto plantea, a su vez, la posibilidad de obtener un mejor escalamiento y una mejor tasa de granularidad en las simulaciones teniendo una mayor capacidad de cómputo, como es el caso de los supercomputadores.
     
     En cuanto a la escalabilidad de las simulaciones en un contexto de paralelismo, si bien existen limitaciones respecto a cuánto se puede llegar a aumentar el _speedup_ de una tarea mediante la paralelización, tal como dicta la Ley de Amdahl, la cual señala que la reducción en los tiempos de ejecución de un programa se verá limitado por aquellas porciones de programa que no son posibles de paralelizar, la paralelización de procesos resulta ser útil al considerar la disponibilidad de múltiples unidades de cómputo y tareas con alta posibilidad de concurrencia.
 
@@ -307,7 +307,9 @@
     ],
     caption: [Descripción del algoritmo _SPartSim_ (Adaptado de @SPartSim)]
   )
+#linebreak()
 
+Se sugiere el uso de este algoritmo por sobre `METIS`, dado que el estudio realizado en @Serrano2025 sugiere que _SPartSim_ presenta particiones más balanceadas en términos de minimización de aristas en los cortes y la diferencia de nodos por partición, lo cual es un aspecto importante a considerar al momento de buscar la eficiencia en la paralelización de las simulaciones y la minimización de la necesidad de comunicación por parte de los nodos de ejecución.
    
   === _Singularity Containers_
   _Singularity_ es un proyecto _open-source_ que permite la creación de contenedores de forma portable y reproducible @Singularity. A diferencia de _Docker_, _Singularity_ fue creado para ejecutar aplicaciones complejas en _clusters_ HPC, cobrando popularidad de manera significativa para su uso en supercomputadores; sin embargo, es posbile construir contenedores de _Singularity_ a partir de contenedores de _Docker_.
@@ -323,10 +325,10 @@
 
   == Partición de mapas de Barcelona y Viladecans
 
-  Para realizar la división de los mapas originales de Barcelona y Viladecans se utilizó una implementación en `Java` ya existente del algoritmo de _SPartSim_ @SPartSim, el cual ejecuta una división por zonas geográficas eligiendo puntos distantes en el mapa dada una heurística inicial y va expandiendo las particiones con los nodos cercanos en cada iteración, para luego balancear la carga de las particiones moviendo aquellos nodos con más peso a particiones vecinas que tengan un menor peso. El objetivo de esto es entregar un mapa particionado de manera relativamente equitativa, de forma que los hilos de ejecución de cada sub-simulación no se vean sobrecargados.
+  Para realizar la división de los mapas originales de Barcelona y Viladecans, el cual fue provisto por la empresa española INTRA, se utilizó una implementación en `Java` ya existente del algoritmo de _SPartSim_ @Roy2025, el cual ejecuta una división por zonas geográficas eligiendo puntos distantes en el mapa dada una heurística inicial y va expandiendo las particiones con los nodos cercanos en cada iteración, para luego balancear la carga de las particiones moviendo aquellos nodos con más peso a particiones vecinas que tengan un menor peso. El objetivo de esto es entregar un mapa particionado de manera equitativa, de forma que los hilos de ejecución de cada sub-simulación no se vean sobrecargados.
 
   En orden de mantener la compatibilidad con los archivos de entrada de las simulaciones con SUMO, a dicha implementación se le agregó un módulo de compatibilidad con archivos `XML`, ya que el código original sólo trabajaba con archivos `GeoJSON`, los cuales además perdían información importante al momento de convertir desde archivos `XML`. A raíz de esto, se debió implementar una clase que conservase dicha información, para después restaurarla al momento de hacer la conversión desde los grafos generados por el _software_ hacia la clase de grafos compatibles con la estructura `XML` requerida por las simulaciones. La siguiente figura ilustra el proceso de conversión implementado para la compatibilidad del _software_ de particionamiento de rutas con archivos `XML`.
-  // TO-DO: Figura
+
   #figure(
       diagram(
           spacing: (10mm, 5mm),
@@ -397,7 +399,6 @@
   ```
 
   El _script_ de `C++` _traci_simulation_ tiene por objetivo ejecutar simulaciones aisladas de forma secuencial. Para esto, luego de configurar el entorno de la simulación, el código llama a una instancia de SUMO con el archivo de configuración previamente definido a partir de un _script_ en `Python`, el cual genera un archivo `XML` especificando, entre otras cosas, cuáles son los archivos a utilizar para las redes de caminos y las rutas de los vehículos.
-  // TO-DO: Anexo -> Ejemplo de archivo de configuración
     #pagebreak()
   == Paralelización de las simulaciones particionadas
 
