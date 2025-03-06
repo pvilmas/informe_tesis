@@ -218,7 +218,7 @@
     - ¿Cómo se comporta asintóticamente la influencia de la carga vehicular a simular en la _performance_ de las simulaciones de tráfico urbano con SUMO?
 
     == Hipótesis
-    Es posible otorgar escalabilidad a los procesos de simulación  de alta granularidad mediante la paralelización de los procesos del _software_ SUMO en un ambiente de supercomputación, incrementando el _speedup_ de éstos en al menos un 5% de los tiempos de simulación secuenciales, y optimizando así el uso de recursos para simulaciones que contemplen áreas metropolitanas de gran extensión y alta carga de tráfico vehicular, determinando para ello los parámetros necesarios para la propia comunicación y sincronización entre los procesos.
+    Es posible otorgar escalabilidad a los procesos de simulación de alta granularidad mediante la paralelización de los procesos del _software_ SUMO en un ambiente de supercomputación, implementando un _speedup_ de $O(n)$ sobre los tiempos de simulación secuenciales, y optimizando así el uso de recursos para simulaciones que contemplen áreas metropolitanas de gran extensión y alta carga de tráfico vehicular, determinando para ello los parámetros necesarios para la propia comunicación y sincronización entre los procesos.
 
     == Objetivos <objetivos>
     === Objetivo General
@@ -228,266 +228,6 @@
     + Aplicar la contenerización de SUMO en _Singularity Containers_ para su ejecución en supercomputadores.
     + Diseñar e implementar un modelo de paralelización de los procesos contenerizados, determinando los parámetros necesarios para la efectiva comunicación y sincronización entre los procesos.
     + Medir la escalabilidad de la solución implementada en un ambiente de supercomputación y comparar con las mediciones previamente realizadas.
-]
-
-#capitulo(title: "Solución propuesta")[
-    La paralelización de procesos es una herramienta ampliamente utilizada para la optimización de operaciones en computación. Mediante la división de tareas en tareas más pequeñas que se ejecutan de manera simultánea, es posible reducir los tiempos de ejecución.
-
-    Durante los últimos años, han surgido distintas técnicas y herramientas que podrían facilitar las simulaciones de tráfico en paralelo aplicado a ambientes de High-Performance Computing, tales como supercomputadores. Algunas de estas son:
-
-  + *Paralelización híbrida*: consiste en la combinación de múltiples técnicas de paralelización, incluyendo estándares de transmisión de mensajes para computación paralela tal como lo es MPI (_Message Passing Interface_) u _OpenMP_ para dispositivos de memoria compartida, con el objetivo de alcanzar una mejor _performance_ y escalabilidad. Esto permite una distribución más granular de tareas de simulación a través de múltiples nodos.
-  + *Particionamiento de modelos*: refiere a la partición de modelos de simulación en submodelos que pueden ser ejecutados en paralelo, lo cual puede ayudar a reducir los costos de comunicación y mejorar la escalabilidad de las simulaciones.
-  + *Simulaciones cloud-based*: implica la ejecución de modelos de simulación en Cloud Computing, lo que ofrece la oportunidad de tener simulaciones más flexibles y escalables. Sin embargo, la latencia de la red y las posibles amenazas en torno a la seguridad de los datos son desventajas que esta opción presenta.
-
-  Un estudio que aborda el problema de la paralelización de SUMO refiere al estudio llevado a cabo por Arroyave et. al., en donde se presenta un modelo de particiones de mapa simplificadas para la simulación en paralelo de tráfico en zonas urbanas. Este modelo consiste en la división de las redes de caminos en forma de cuadrículas, lo cual incrementa el nivel de error de la simulación de manera proporcional con el número de particiones realizadas al momento de simular, teniendo un error que "crece de manera proporcional al número de particiones con luces de tráfico o cualquier otra condición que se vea afectada por un ciclo de luces de tráfico" @Arroyave2018. Además de esto, dicho estudio señala que el método de paralelización presentado es más lento que su contraparte centralizada dado el proceso de sincronización implementado. Esto plantea la necesidad de abordar el problema desde una perspectiva que considere un esquema de partición de grafos más eficiente, que permita distribuir mejor la carga vehicular en los nodos de simulación.
-
-  Por otro lado, el trabajo titulado "QarSUMO: A Parallel, Congestion-optimized Traffic Simulator" @Chen2020, presenta una versión paralelizada de SUMO considerando la complejidad de la distribución de las redes de caminos por medio de la implementación de un esquema de partición de grafos no-regulares, abreviado como `METIS` @Karypis1998. Si bien este estudio logra establecer un método de paralelización de alto nivel, incrementando la eficiencia de las simulaciones para situaciones de alta congestión de tráfico, su alcance en cuanto a áreas urbanas no alcanza una escalabilidad a nivel de simulaciones completas al no considerar su implementación en ambientes de _High-Performance Computing_. Sumado a esto, el _software_ disminuye el nivel de granularidad de las simulaciones por medio de la simplificación del modelamiento de un gran número de vehículos a una sola entidad. Esto plantea, a su vez, la posibilidad de obtener un mejor escalamiento y una mejor tasa de granularidad en las simulaciones teniendo una mayor capacidad de cómputo, como es el caso de los supercomputadores.
-    
-    En cuanto a la escalabilidad de las simulaciones en un contexto de paralelismo, si bien existen limitaciones respecto a cuánto se puede llegar a aumentar el _speedup_ de una tarea mediante la paralelización, tal como dicta la Ley de Amdahl, la cual señala que la reducción en los tiempos de ejecución de un programa se verá limitado por aquellas porciones de programa que no son posibles de paralelizar, la paralelización de procesos resulta ser útil al considerar la disponibilidad de múltiples unidades de cómputo y tareas con alta posibilidad de concurrencia.
-
-    En particular, los procesos de simulación de tráfico vehicular urbano consumen una gran cantidad de recursos y tiempos de ejecución al correr de forma secuencial. Dado que la escalabilidad de dichas simulaciones depende de la carga de vehículos que ésta tenga, es posible pensar en una solución que distribuya esta carga a través de múltiples nodos que computen simultáneamente rutas divididas según zonas geográficas, de manera que cada nodo maneje una zona distinta, y se comunique con los nodos correspondientes mediante una entidad central que gestione la salida y entrada de vehículos a distintas particiones. Es importante, en este caso, considerar el _overhead_ que dichos procesos de comunicación implican, dado que plantean casos de exclusión mutua que serializan parte de las tareas y, por lo tanto, limitan su _speedup_.
-
-    A raíz de lo ya expuesto, es posible extraer la posibilidad de implementar un modelo de paralelización orientado a su uso en dispositivos de alta disponibilidad, solucionando el problema de la escalabilidad, y haciendo uso de herramientas tales como algoritmos de partición de grafos no-regulares para distribuir apropiadamente la carga vehicular, de manera que se optimice el uso de recursos y no se arrastre un margen de error proporcional al número de particiones realizadas para las simulaciones a ejecutar, conservando un mayor porcentaje de precisión para éstas.
-
-  == Diseño de la solución
-    La solución propuesta al problema planteado contempla el desarrollo e implementación de un modelo de paralelización para simulaciones de tráfico vehicular urbano a partir de la contenerización de instancias del _software_ SUMO. Para esto, se trabajó con el lenguaje `C++` y las librerías _libtraci_ y _OpenMP_. 
-
-
-  El diseño considera el levantamiento de distintos nodos de ejecución, al cual se les asigna el mapa a simular y las rutas correspondientes a su partición, y, mediante una instancia contenerizada de SUMO, también asignada al nodo, se ejecuta la simulación a través de estas particiones que corren en paralelo. Es importante destacar la necesidad de la contenerización de SUMO, dado que cada nodo necesita su propia instancia del _software_ para poder funcionar sin problemas de lectura/escritura en dispositivos de memoria compartida.
-
-  El particionamiento de los mapas a utilizar para las simulaciones contempla el uso del algoritmo de particionamiento de grafos _SPartSim_ @SPartSim, mientras que el posterior corte de las rutas para cada partición se realiza a partir de la herramienta _cutRoutes.py_, provista por el _software_ SUMO.
-
-  Para medir la eficiencia de la solución implementada, se propone el diseño e implementación de tests de carga que midan el tiempo de ejecución y uso de CPU para simulaciones paralelizadas con distintos _sets_ de particiones, con el objetivo de comparar estos resultados con los previamente obtenidos y mostrados en la @pruebas para simulaciones ejecutadas de manera secuencial. 
-
-  Dado el contexto en el que este trabajo se inserta, los mapas utilizados para las pruebas de concepto y la posterior ejecución de los test de carga corresponden a las áreas de Barcelona y Viladecans, ambas ciudades de la región de Cataluña, España.
-
-  == Herramientas utilizadas
-  === _SPartSim_
-  _SPartSim_ es un algoritmo de partición de grafos de crecimiento de regiones, esto es, que partiendo desde un vértice inicial, hace crecer cada partición en todas direcciones, hasta que ninguna pueda seguir creciendo. Dicho algoritmo se describe a continuación:
-
-  #figure(
-    kind: "algorithm",
-    supplement: [Algoritmo],
-    pseudocode-list(booktabs: true, numbered-title: [_SPartSim_])[
-        #h(7pt)*input* : A road network $G=(V,A,omega)$; _n_ the number
-        #linebreak()
-        of partitions wanted; $epsilon$ an acceptable unbalance of 
-        #linebreak()
-        the partitioning.
-        #linebreak()
-        *output* : $pi(G,n)$ a road network partitioning
-        + *begin*
-            - \/\/ Initialisation
-            + stop $\u{2190}$ new array of size $n$;
-            + *for* i $\u{2190}$ 1 *to* $n$ *do*
-                + $gamma_i \u{2190}$ BestCandidateVertex();
-                + stop[$i$] $\u{2190}$ 1;
-            - \/\/ Region growing
-            + *while* stop $\u{2260} emptyset$ *do*
-                + *for* $i \u{2190} 1$ *to* $n$ *do*
-                    + *if* stop[$i$] $\u{2260} 0$ *then*
-                        + hasGrown $\u{2190}$ Grow($gamma_i$);
-                        + *if* hasGrown *then*
-                            + stop[$i$] $\u{2190} 0$;
-            - \/\/ Balance partitioning
-            + balanced $\u{2190}$ false;
-            + *while* $not$ balanced $or$ enough iterations *do*
-                + $gamma_i = max pi(G,n)$;
-                + $gamma_j = min pi(G,n)$;
-                + *if* $abs(gamma_(i)[V]) - epsilon < frac(abs(G[V]), n) < abs(gamma_(j)[V]) + epsilon$ *then*
-                    + balanced $\u{2190}$ true;
-                + *else*
-                    + Trade($gamma_i, gamma_j$);
-            - \/\/ Ensure conectivity
-            + *foreach* $gamma_i$ *do*
-                + ComputeConnectedSubgraphs($gamma_i$);
-            + *foreach* connected component $"cc"^j_gamma_i$ *do*
-                + Attach($"cc"^j_gamma_i$);
-        + *end*
-    ],
-    caption: [Descripción del algoritmo _SPartSim_ (Adaptado de @SPartSim)]
-  )
-#linebreak()
-
-Se sugiere el uso de este algoritmo por sobre `METIS`, dado que el estudio realizado en @Serrano2025 sugiere que _SPartSim_ presenta particiones más balanceadas en términos de minimización de aristas en los cortes y la diferencia de nodos por partición, lo cual es un aspecto importante a considerar al momento de buscar la eficiencia en la paralelización de las simulaciones y la minimización de la necesidad de comunicación por parte de los nodos de ejecución.
-   
-  === _Singularity Containers_
-  _Singularity_ es un proyecto _open-source_ que permite la creación de contenedores de forma portable y reproducible @Singularity. A diferencia de _Docker_, _Singularity_ fue creado para ejecutar aplicaciones complejas en _clusters_ HPC, cobrando popularidad de manera significativa para su uso en supercomputadores; sin embargo, es posbile construir contenedores de _Singularity_ a partir de contenedores de _Docker_.
-
-  Adicionalmente, este _software_ soporta la generación de imágenes _custom_ a través de sus archivos de definición, permitiendo envolver todas las imágenes necesarias en un sólo archivo que provee facilidad de manejo, además de simplificar el despliegue de los contenedores @Younge2017. La interoperabilidad que ofrece _Singularity_ permite también su portabilidad a través de distintas arquitecturas HPC.
-
-  === _OpenMP_
-  _OpenMP_ es una API de modelo escalable que ofrece una interfaz flexible y sencilla de manejar para programación paralela @OpenMP. Provee soporte para los lenguajes `C`, `C++` y `Fortran`, y permite el desarrollo de aplicaciones portables, encontrándose orientado principalmente a la programación para multiprocesadores de memoria compartida.
-
-  Esta API consiste en una especificación para un set de directivas de compilación, rutinas de librería y variables de ambiente que pueden ser usadas para especificar paralelismo de alto nivel. Actualmente, se encuentra en la versión 5.2.
-  === SUMO y _libtraci_
-  La librería _libtraci_ de SUMO es una herramienta que compatibiliza el uso de TraCI con códigos de `C++` @libtraci, de manera que no sólo se pueda ejecutar una simulación, sino que también pueda controlarse y monitorearse sin necesidad de una GUI. _Libtraci_ provee, además de las funcionalidades de TraCI, soporte para el uso de múltiples clientes, lo cual resulta conveniente al momento de pensar en la paralelización de las simulaciones. 
-
-  == Partición de mapas de Barcelona y Viladecans
-
-  Para realizar la división de los mapas originales de Barcelona y Viladecans, el cual fue provisto por la empresa española INTRA, se utilizó una implementación en `Java` ya existente del algoritmo de _SPartSim_ @Roy2025, el cual ejecuta una división por zonas geográficas eligiendo puntos distantes en el mapa dada una heurística inicial y va expandiendo las particiones con los nodos cercanos en cada iteración, para luego balancear la carga de las particiones moviendo aquellos nodos con más peso a particiones vecinas que tengan un menor peso. El objetivo de esto es entregar un mapa particionado de manera equitativa, de forma que los hilos de ejecución de cada sub-simulación no se vean sobrecargados.
-
-  En orden de mantener la compatibilidad con los archivos de entrada de las simulaciones con SUMO, a dicha implementación se le agregó un módulo de compatibilidad con archivos `XML`, ya que el código original sólo trabajaba con archivos `GeoJSON`, los cuales además perdían información importante al momento de convertir desde archivos `XML`. A raíz de esto, se debió implementar una clase que conservase dicha información, para después restaurarla al momento de hacer la conversión desde los grafos generados por el _software_ hacia la clase de grafos compatibles con la estructura `XML` requerida por las simulaciones. La siguiente figura ilustra el proceso de conversión implementado para la compatibilidad del _software_ de particionamiento de rutas con archivos `XML`.
-
-  #figure(
-      diagram(
-          spacing: (10mm, 5mm),
-          node-stroke: 1pt,
-          edge-stroke: 1pt,
-          node((-7, 0), `XML File`, name: <1>, width: 20mm),
-          node((-5, 0), `XMLGraph
-
-- String version
-- double limitTurnSpeed
-- NetLocation location
-- List<NetType> types
-- List <NetEdge> edges
-- List <NetJunction> junctions`, name: <2>, width: 65mm),
-      node((-3, 0), `Graph
-      
-- Map<Integer, Vertex> vertices
-- Map<Integer, Edge> edges`, name: <3>, width: 35mm),
-      edge(<1>, <2>, "-|>", label: `read()`),
-      edge(<2>,<3>, "-|>", label: `parse()`)
-      ),
-      caption: [Diagrama de conversión de archivos `XML` a estructuras de tipo `Graph`.]
-  )
-  
-  Como es posible observar, la estructura `XMLGraph` conserva del mapa original atributos tales como la localización, los límites de velocidad y la versión del archivo, los cuales se mantienen al momento de realizar la conversión de las particiones desde la estructura `Graph` a `XMLGraph` para su posterior escritura en los distintos archivos `XML` correspondientes a cada partición.
-
-  == Generación y partición de rutas vehiculares <5.3>
-
-  Para la generación de las rutas vehiculares se consideraron, en primer lugar, dos enfoques distintos: por un lado, el generar dichas rutas a partir de datos reales de movilidad urbana, y por otro lado, generarlas de manera aleatoria o pseudo-aleatoria por medio de la herramienta _randomTrips.py_, provista por SUMO y utilizada para realizar las pruebas de escalabilidad de las simulaciones secuenciales.
-
-  Respecto al primer enfoque, se obtuvieron los datos de movilidad de la población de Barcelona en formato de matrices de Origen-Destino obtenidas a partir de los datos recolectados de las redes móviles por parte del ayuntamiento de Barcelona. Sin embargo, dada la complejidad implicada por la conversión de dichas matrices a los archivos `XML` que describen las rutas correspondientes, en contraste con la simplicidad de generar las rutas de manera pseudo-aleatoria con una herramienta ya integrada en el _software_, y considerando los objetivos planteados, se decidió tomar el segundo enfoque.
-
-  Para la partición de las rutas generadas se hizo uso de la herramienta _cutRoutes.py_ de SUMO, la cual corta las rutas acorde a la partición del mapa que se busca simular. No obstante, dicha herramienta presenta problemas en tanto termina descartando ciertas rutas particionadas y recalculando los tiempos de partida para cada una; si bien existe una extensión que soluciona este problema para la futura paralelización de los procesos de simulación @Acosta2016, no fue posible acceder a ella, por lo que sólo se consideraron aquellas rutas resultantes de _cutRoutes.py_ para la posterior reconstrucción.
-
-    #pagebreak()
-  == Contenerización de simulaciones secuenciales
-  En una primera instancia de exploración del uso de _Singularity Containers_, se procedió a implementar la contenerización de simulaciones sin paralelizar. El resultado de esto fue la creación de un archivo de definición de _containers_ con extensión `.def`, el cual construye el entorno necesario para la ejecución de las simulaciones de manera aislada. A continuación, se muestra un ejemplo de estos archivos de definición para el levantamiento de los contenedores.
-
-  ```
-  Bootstrap: debootstrap
-  OSVersion: jammy
-  From: ubuntu:22.04
-  MirrorURL: http://us.archive.ubuntu.com/ubuntu/
-
-  %files
-      partition.net.xml /home/
-      viladecans.poly.xml /home/
-      partition.rou.xml /home/
-      sim.sumocfg /home/
-      traci_simulation /home/
-
-  %post
-      chmod 755 /root
-      apt update
-      apt-get install -y software-properties-common build-essential python3
-      add-apt-repository universe
-      add-apt-repository multiverse
-      apt-get update
-      apt-get install -y sumo sumo-tools sumo-doc
-
-
-  %environment
-      export SUMO_HOME=/usr/share/sumo
-
-  %runscript
-      cd /home
-      ./traci_simulation
-  ```
-
-  El _script_ de `C++` _traci_simulation_ tiene por objetivo ejecutar simulaciones aisladas de forma secuencial. Para esto, luego de configurar el entorno de la simulación, el código llama a una instancia de SUMO con el archivo de configuración previamente definido a partir de un _script_ en `Python`, el cual genera un archivo `XML` especificando, entre otras cosas, cuáles son los archivos a utilizar para las redes de caminos y las rutas de los vehículos.
-    #pagebreak()
-  == Paralelización de las simulaciones particionadas
-
-  La paralelización de las simulaciones particionadas consistió en la implementación de un código en `C++` con la ayuda de _OpenMP_ para las directivas de compilación. Este código implementa una arquitectura de _multi-threading_, en la cual cada hilo de ejecución posee una instancia de SUMO contenerizada que simula una partición dada del mapa original, con las rutas propiamente particionadas de acuerdo con el algoritmo de _cutRoutes.py_.
-
-  En la siguiente figura, se muestra el funcionamiento general de la paralelización realizada con 5 _threads_. Primero se realiza un proceso de configuración de forma secuencial, en el que se generan los archivos de configuración _sim.sumocfg_ a partir de los cuales se ejecutan las simulaciones en forma paralela mediante una instancia de SUMO contenerizada con _Singularity_. De esta manera, una vez que se crean los archivos de configuración, se realiza un llamado con el comando `#pragma omp parallel`, configurando el número de threads a ejecutarse como el número de particiones hechas previamente con _SPartSim_.
-  
-  #figure(
-      diagram(
-          spacing: (9mm, 4mm),
-          node-stroke: 1pt,
-          edge-stroke: 1pt,
-          node((-7,0), `Generate sim_i.sumocfg`, name: <1>, width: 31mm),
-          edge((-9,0), "r,r", "-|>", label: `start`),
-          node((-2,0), `SUMO instance`, name: <2>, width: 21mm),
-          node((-2,1), `SUMO instance`, name: <3>, width: 21mm),
-          node((-2,-1), `SUMO instance`, name: <4>, width: 21mm),
-          node((-2,2), `SUMO instance`, name: <5>, width: 21mm),
-          node((-2,-2), `SUMO instance`, name: <6>, width: 21mm),
-          node((0,0), `partition_3.log`, name: <7>, width: 34mm),
-          node((0,1), `partition_4.log`, name: <8>, width: 34mm),
-          node((0,-1), `partition_2.log`, name: <9>, width: 34mm),
-          node((0,2), `partition_5.log`, name: <10>, width: 34mm),
-          node((0,-2), `partition_1.log`, name: <11>, width: 34mm),
-          edge(<1>,<1>, "-|>", bend: 130deg, label: `for each partition`),
-          node(
-              enclose: (<2>, <3>, <4>, <5>, <6>),
-              name: <parallel>,
-              corner-radius: 3pt,
-          ),
-          edge(<1>,<parallel>, "-|>", label: `#pragma omp parallel`),
-          edge(<2>, <7>, "-|>"),
-          edge(<3>, <8>, "-|>"),
-          edge(<4>, <9>, "-|>"),
-          edge(<5>, <10>, "-|>"),
-          edge(<6>, <11>, "-|>"),
-          edge(<parallel>,<parallel>, "-|>", bend: 100deg, label: `run simulation`)
-      ),
-      
-  )
-
-  #pagebreak()
-  == Sincronización de las simulaciones particionadas
-  === Reensamblaje de rutas
-  En cuanto a la reconstrucción de las rutas, se implementó un código en `Python` que toma tanto las rutas originales como las particionadas y, por cada ruta particionada, busca la ruta original y las agrupa en un diccionario indicando sus aristas, la partición a la que pertenece la ruta, y su índice de ocurrencia en la ruta original. De esta manera, fue posible realizar una reconstrucción parcial de los viajes generados por _randomTrips.py_.
-  
-  El resultado de esta reconstrucción se guarda finalmente en un archivo `.json`, con la estructura que se muestra a continuación: //Queda como trabajo futuro refinar la reconstrucción de rutas para que las simulaciones sean más precisas.
-
-  // TO-DO: Diagrama del archivo de reconstrucción de rutas.
-
-
-  ```
-  {
-      "routes": [
-          {
-              "original_route": str,
-              "cut_routes": [
-                  {
-                      "partition": int,
-                      "id": str,
-                      "cut_route": str,
-                      "next_partition": int,
-                      "next_route": str
-                  },
-                  ...
-              ]
-          },
-          ...
-      ]
-  }
-  ```
-  
-  === Comunicación entre nodos
-  Dado que la implementación sigue un enfoque para _shared-memory devices_, la comunicación entre los nodos de ejecución se realizó mediante la implementación de una cola global en la cual, a cada paso de la simulación, cada hilo escribe los vehículos salientes de su partición con la partición a la que corresponde insertarse después, mientras que al paso siguiente lee e inserta en la simulación aquellos vehículos cuya entrada corresponde a su partición. Para esto, se hace uso de exclusión mutua por medio de la implementación de secciones críticas para la escritura en la cola de tráfico, mientras que para la adición o remoción de vehículos en cada partición se hace uso de las herramientas provistas por _libtraci_.
-  
-  #pagebreak()
-  === Impedimentos para la sincronización <impedimentos>
-  Como se menciona en la @5.3, la herramienta de particionamiento de rutas _cutRoutes.py_ presenta limitaciones al momento de considerarla para la sincronización de simulaciones de tráfico urbano mediante SUMO, principalmente al momento de definir los tiempos de partida de los vehículos (_departure times_), redefiniendo aquellas rutas que cruzan más de una partición como rutas independientes con el mismo tiempo de partida; esto radica en problemas tales como que al ingreso de nuevas rutas, no se reconozca el vehículo a insertar dado que el mismo ya ha salido de la simulación.
-  == Diseño e implementación de test de carga
-  === Test versión secuencial
-  Para poder realizar la comparación en cuanto al crecimiento de los tiempos de ejecución para las simulaciones secuenciales, se implementó un módulo de test en el lenguaje `C++`, el que contempla una primera fase de _setup_, donde se definen los períodos de generación de vehículos a partir de los cuales se generan los archivos de rutas necesarios para el mapa definido. En total, se definen veinte períodos para los cuales se definen también los archivos de configuración a utilizar para cada simulación.
-
-  La segunda etapa contempla la ejecución de cada simulación de forma secuencial, midiendo y registrando el tiempo que toma cada una en finalizar. Para esto, cada simulación se ejecutó un total de cincuenta veces, para luego obtener el tiempo total como el promedio de los tiempos de cada iteración.
-  === Test versión paralelizada
-  Para probar el escalamiento de la solución implementada, se siguió un procedimiento similar a los tests secuenciales, resultando en la implementación de los siguientes módulos:
-
-  - *_setup_*: este módulo genera los períodos, rutas, particiones y archivos de configuración necesarios para cada simulación, y organiza los archivos en sus directorios correspondientes.
-  - *_start_test_*: por cada set de particiones realizadas, este módulo se encarga de entrar a cada directorio e iniciar el test de carga para cada período dado.
-  - *_load_test_*: este módulo implementa el test de carga, el cual, a partir de los archivos de configuración y la imagen de _Singularity_ construida para las instancias de SUMO, ejecuta las simulaciones llamando al módulo encargado de paralelizar los procesos de simulación según el número de particiones realizadas. Tal como en el test para la versión secuencial, cada simulación se ejecuta un total de cincuenta veces, para luego promediar los tiempos de cada iteración.
 ]
 
 #capitulo(title: "Marco teórico")[
@@ -694,8 +434,310 @@ Se sugiere el uso de este algoritmo por sobre `METIS`, dado que el estudio reali
   Finalmente, durante el año 2021 se presenta el trabajo de Franchi et. al., el cual implementa un pipeline para simulación de vehículos autónomos utilizando Webots y SUMO en paralelo en un _cluster_ HPC (Palmetto Cluster) @Franchi2021. Si bien los resultados muestran una mejora en la performance de las simulaciones multimodales, se destaca que es necesario tener en cuenta el _overhead_ que implica el levantamiento de las simulaciones y la escritura de resultados por cada simulación ejecutada en paralelo.
 ]
 
+#capitulo(title: "Solución propuesta")[
+    La paralelización de procesos es una herramienta ampliamente utilizada para la optimización de operaciones en computación. Mediante la división de tareas en tareas más pequeñas que se ejecutan de manera simultánea, es posible reducir los tiempos de ejecución.
+
+    Durante los últimos años, han surgido distintas técnicas y herramientas que podrían facilitar las simulaciones de tráfico en paralelo aplicado a ambientes de High-Performance Computing, tales como supercomputadores. Algunas de estas son:
+
+  + *Paralelización híbrida*: consiste en la combinación de múltiples técnicas de paralelización, incluyendo estándares de transmisión de mensajes para computación paralela tal como lo es MPI (_Message Passing Interface_) u _OpenMP_ para dispositivos de memoria compartida, con el objetivo de alcanzar una mejor _performance_ y escalabilidad. Esto permite una distribución más granular de tareas de simulación a través de múltiples nodos.
+  + *Particionamiento de modelos*: refiere a la partición de modelos de simulación en submodelos que pueden ser ejecutados en paralelo, lo cual puede ayudar a reducir los costos de comunicación y mejorar la escalabilidad de las simulaciones.
+  + *Simulaciones cloud-based*: implica la ejecución de modelos de simulación en Cloud Computing, lo que ofrece la oportunidad de tener simulaciones más flexibles y escalables. Sin embargo, la latencia de la red y las posibles amenazas en torno a la seguridad de los datos son desventajas que esta opción presenta.
+
+  Un estudio que aborda el problema de la paralelización de SUMO refiere al estudio llevado a cabo por Arroyave et. al., en donde se presenta un modelo de particiones de mapa simplificadas para la simulación en paralelo de tráfico en zonas urbanas. Este modelo consiste en la división de las redes de caminos en forma de cuadrículas, lo cual incrementa el nivel de error de la simulación de manera proporcional con el número de particiones realizadas al momento de simular, teniendo un error que "crece de manera proporcional al número de particiones con luces de tráfico o cualquier otra condición que se vea afectada por un ciclo de luces de tráfico" @Arroyave2018. Además de esto, dicho estudio señala que el método de paralelización presentado es más lento que su contraparte centralizada dado el proceso de sincronización implementado. Esto plantea la necesidad de abordar el problema desde una perspectiva que considere un esquema de partición de grafos más eficiente, que permita distribuir mejor la carga vehicular en los nodos de simulación.
+
+  Por otro lado, el trabajo titulado "QarSUMO: A Parallel, Congestion-optimized Traffic Simulator" @Chen2020, presenta una versión paralelizada de SUMO considerando la complejidad de la distribución de las redes de caminos por medio de la implementación de un esquema de partición de grafos no-regulares, abreviado como `METIS` @Karypis1998. Si bien este estudio logra establecer un método de paralelización de alto nivel, incrementando la eficiencia de las simulaciones para situaciones de alta congestión de tráfico, su alcance en cuanto a áreas urbanas no alcanza una escalabilidad a nivel de simulaciones completas al no considerar su implementación en ambientes de _High-Performance Computing_. Sumado a esto, el _software_ disminuye el nivel de granularidad de las simulaciones por medio de la simplificación del modelamiento de un gran número de vehículos a una sola entidad. Esto plantea, a su vez, la posibilidad de obtener un mejor escalamiento y una mejor tasa de granularidad en las simulaciones teniendo una mayor capacidad de cómputo, como es el caso de los supercomputadores.
+    
+    En cuanto a la escalabilidad de las simulaciones en un contexto de paralelismo, si bien existen limitaciones respecto a cuánto se puede llegar a aumentar el _speedup_ de una tarea mediante la paralelización, tal como dicta la Ley de Amdahl, la cual señala que la reducción en los tiempos de ejecución de un programa se verá limitado por aquellas porciones de programa que no son posibles de paralelizar, la paralelización de procesos resulta ser útil al considerar la disponibilidad de múltiples unidades de cómputo y tareas con alta posibilidad de concurrencia.
+
+    En particular, los procesos de simulación de tráfico vehicular urbano consumen una gran cantidad de recursos y tiempos de ejecución al correr de forma secuencial. Dado que la escalabilidad de dichas simulaciones depende de la carga de vehículos que ésta tenga, es posible pensar en una solución que distribuya esta carga a través de múltiples nodos que computen simultáneamente rutas divididas según zonas geográficas, de manera que cada nodo maneje una zona distinta, y se comunique con los nodos correspondientes mediante una entidad central que gestione la salida y entrada de vehículos a distintas particiones. Es importante, en este caso, considerar el _overhead_ que dichos procesos de comunicación implican, dado que plantean casos de exclusión mutua que serializan parte de las tareas y, por lo tanto, limitan su _speedup_.
+
+    A raíz de lo ya expuesto, es posible extraer la posibilidad de implementar un modelo de paralelización orientado a su uso en dispositivos de alta disponibilidad, solucionando el problema de la escalabilidad, y haciendo uso de herramientas tales como algoritmos de partición de grafos no-regulares para distribuir apropiadamente la carga vehicular, de manera que se optimice el uso de recursos y no se arrastre un margen de error proporcional al número de particiones realizadas para las simulaciones a ejecutar, conservando un mayor porcentaje de precisión para éstas.
+
+  == Diseño de la solución
+    La solución propuesta al problema planteado contempla el desarrollo e implementación de un modelo de paralelización para simulaciones de tráfico vehicular urbano a partir de la contenerización de instancias del _software_ SUMO. Para esto, se trabajó con el lenguaje `C++` y las librerías _libtraci_ y _OpenMP_. 
+
+
+  El diseño considera el levantamiento de distintos nodos de ejecución, al cual se les asigna el mapa a simular y las rutas correspondientes a su partición, y, mediante una instancia contenerizada de SUMO, también asignada al nodo, se ejecuta la simulación a través de estas particiones que corren en paralelo. Es importante destacar la necesidad de la contenerización de SUMO, dado que cada nodo necesita su propia instancia del _software_ para poder funcionar sin problemas de lectura/escritura en dispositivos de memoria compartida.
+
+  El particionamiento de los mapas a utilizar para las simulaciones contempla el uso del algoritmo de particionamiento de grafos _SPartSim_ @SPartSim, mientras que el posterior corte de las rutas para cada partición se realiza a partir de la herramienta _cutRoutes.py_, provista por el _software_ SUMO.
+
+  Para medir la eficiencia de la solución implementada, se propone el diseño e implementación de tests de carga que midan el tiempo de ejecución y uso de CPU para simulaciones paralelizadas con distintos _sets_ de particiones, con el objetivo de comparar estos resultados con los previamente obtenidos y mostrados en la @pruebas para simulaciones ejecutadas de manera secuencial. 
+
+  Dado el contexto en el que este trabajo se inserta, los mapas utilizados para las pruebas de concepto y la posterior ejecución de los test de carga corresponden a las áreas de Barcelona y Viladecans, ambas ciudades de la región de Cataluña, España.
+
+  == Herramientas utilizadas
+  === _SPartSim_
+  _SPartSim_ es un algoritmo de partición de grafos de crecimiento de regiones, esto es, que partiendo desde un vértice inicial, hace crecer cada partición en todas direcciones, hasta que ninguna pueda seguir creciendo. Dicho algoritmo se describe a continuación:
+
+  #figure(
+    kind: "algorithm",
+    supplement: [Algoritmo],
+    pseudocode-list(booktabs: true, numbered-title: [_SPartSim_])[
+        #h(7pt)*input* : A road network $G=(V,A,omega)$; _n_ the number
+        #linebreak()
+        of partitions wanted; $epsilon$ an acceptable unbalance of 
+        #linebreak()
+        the partitioning.
+        #linebreak()
+        *output* : $pi(G,n)$ a road network partitioning
+        + *begin*
+            - \/\/ Initialisation
+            + stop $\u{2190}$ new array of size $n$;
+            + *for* i $\u{2190}$ 1 *to* $n$ *do*
+                + $gamma_i \u{2190}$ BestCandidateVertex();
+                + stop[$i$] $\u{2190}$ 1;
+            - \/\/ Region growing
+            + *while* stop $\u{2260} emptyset$ *do*
+                + *for* $i \u{2190} 1$ *to* $n$ *do*
+                    + *if* stop[$i$] $\u{2260} 0$ *then*
+                        + hasGrown $\u{2190}$ Grow($gamma_i$);
+                        + *if* hasGrown *then*
+                            + stop[$i$] $\u{2190} 0$;
+            - \/\/ Balance partitioning
+            + balanced $\u{2190}$ false;
+            + *while* $not$ balanced $or$ enough iterations *do*
+                + $gamma_i = max pi(G,n)$;
+                + $gamma_j = min pi(G,n)$;
+                + *if* $abs(gamma_(i)[V]) - epsilon < frac(abs(G[V]), n) < abs(gamma_(j)[V]) + epsilon$ *then*
+                    + balanced $\u{2190}$ true;
+                + *else*
+                    + Trade($gamma_i, gamma_j$);
+            - \/\/ Ensure conectivity
+            + *foreach* $gamma_i$ *do*
+                + ComputeConnectedSubgraphs($gamma_i$);
+            + *foreach* connected component $"cc"^j_gamma_i$ *do*
+                + Attach($"cc"^j_gamma_i$);
+        + *end*
+    ],
+    caption: [Descripción del algoritmo _SPartSim_ (Adaptado de @SPartSim)]
+  )
+#linebreak()
+
+Se sugiere el uso de este algoritmo por sobre `METIS`, dado que el estudio realizado en @Serrano2025 sugiere que _SPartSim_ presenta particiones más balanceadas en términos de minimización de aristas en los cortes y la diferencia de nodos por partición, lo cual es un aspecto importante a considerar al momento de buscar la eficiencia en la paralelización de las simulaciones y la minimización de la necesidad de comunicación por parte de los nodos de ejecución.
+   
+  === _Singularity Containers_
+  _Singularity_ es un proyecto _open-source_ que permite la creación de contenedores de forma portable y reproducible @Singularity. A diferencia de _Docker_, _Singularity_ fue creado para ejecutar aplicaciones complejas en _clusters_ HPC, cobrando popularidad de manera significativa para su uso en supercomputadores; sin embargo, es posbile construir contenedores de _Singularity_ a partir de contenedores de _Docker_.
+
+  Adicionalmente, este _software_ soporta la generación de imágenes _custom_ a través de sus archivos de definición, permitiendo envolver todas las imágenes necesarias en un sólo archivo que provee facilidad de manejo, además de simplificar el despliegue de los contenedores @Younge2017. La interoperabilidad que ofrece _Singularity_ permite también su portabilidad a través de distintas arquitecturas HPC.
+
+  === _OpenMP_
+  _OpenMP_ es una API de modelo escalable que ofrece una interfaz flexible y sencilla de manejar para programación paralela @OpenMP. Provee soporte para los lenguajes `C`, `C++` y `Fortran`, y permite el desarrollo de aplicaciones portables, encontrándose orientado principalmente a la programación para multiprocesadores de memoria compartida.
+
+  Esta API consiste en una especificación para un set de directivas de compilación, rutinas de librería y variables de ambiente que pueden ser usadas para especificar paralelismo de alto nivel. Actualmente, se encuentra en la versión 5.2.
+  === SUMO y _libtraci_
+  La librería _libtraci_ de SUMO es una herramienta que compatibiliza el uso de TraCI con códigos de `C++` @libtraci, de manera que no sólo se pueda ejecutar una simulación, sino que también pueda controlarse y monitorearse sin necesidad de una GUI. _Libtraci_ provee, además de las funcionalidades de TraCI, soporte para el uso de múltiples clientes, lo cual resulta conveniente al momento de pensar en la paralelización de las simulaciones. 
+
+  == Partición de mapas de Barcelona y Viladecans
+
+  Para realizar la división de los mapas originales de Barcelona y Viladecans, el cual fue provisto por la empresa española INTRA, se utilizó una implementación en `Java` ya existente del algoritmo de _SPartSim_ @Roy2025, el cual ejecuta una división por zonas geográficas eligiendo puntos distantes en el mapa dada una heurística inicial y va expandiendo las particiones con los nodos cercanos en cada iteración, para luego balancear la carga de las particiones moviendo aquellos nodos con más peso a particiones vecinas que tengan un menor peso. El objetivo de esto es entregar un mapa particionado de manera equitativa, de forma que los hilos de ejecución de cada sub-simulación no se vean sobrecargados.
+
+  En orden de mantener la compatibilidad con los archivos de entrada de las simulaciones con SUMO, a dicha implementación se le agregó un módulo de compatibilidad con archivos `XML`, ya que el código original sólo trabajaba con archivos `GeoJSON`, los cuales además perdían información importante al momento de convertir desde archivos `XML`. A raíz de esto, se debió implementar una clase que conservase dicha información, para después restaurarla al momento de hacer la conversión desde los grafos generados por el _software_ hacia la clase de grafos compatibles con la estructura `XML` requerida por las simulaciones. La siguiente figura ilustra el proceso de conversión implementado para la compatibilidad del _software_ de particionamiento de rutas con archivos `XML`.
+
+  #figure(
+      diagram(
+          spacing: (10mm, 5mm),
+          node-stroke: 1pt,
+          edge-stroke: 1pt,
+          node((-7, 0), `XML File`, name: <1>, width: 20mm),
+          node((-5, 0), `XMLGraph
+
+- String version
+- double limitTurnSpeed
+- NetLocation location
+- List<NetType> types
+- List <NetEdge> edges
+- List <NetJunction> junctions`, name: <2>, width: 65mm),
+      node((-3, 0), `Graph
+      
+- Map<Integer, Vertex> vertices
+- Map<Integer, Edge> edges`, name: <3>, width: 35mm),
+      edge(<1>, <2>, "-|>", label: `read()`),
+      edge(<2>,<3>, "-|>", label: `parse()`)
+      ),
+      caption: [Diagrama de conversión de archivos `XML` a estructuras de tipo `Graph`.]
+  )
+  
+  Como es posible observar, la estructura `XMLGraph` conserva del mapa original atributos tales como la localización, los límites de velocidad y la versión del archivo, los cuales se mantienen al momento de realizar la conversión de las particiones desde la estructura `Graph` a `XMLGraph` para su posterior escritura en los distintos archivos `XML` correspondientes a cada partición.
+
+  == Generación y partición de rutas vehiculares <5.3>
+
+  Para la generación de las rutas vehiculares se consideraron, en primer lugar, dos enfoques distintos: por un lado, el generar dichas rutas a partir de datos reales de movilidad urbana, y por otro lado, generarlas de manera aleatoria o pseudo-aleatoria por medio de la herramienta _randomTrips.py_, provista por SUMO y utilizada para realizar las pruebas de escalabilidad de las simulaciones secuenciales.
+
+  Respecto al primer enfoque, se obtuvieron los datos de movilidad de la población de Barcelona en formato de matrices de Origen-Destino obtenidas a partir de los datos recolectados de las redes móviles por parte del ayuntamiento de Barcelona. Sin embargo, dada la complejidad implicada por la conversión de dichas matrices a los archivos `XML` que describen las rutas correspondientes, en contraste con la simplicidad de generar las rutas de manera pseudo-aleatoria con una herramienta ya integrada en el _software_, y considerando los objetivos planteados, se decidió tomar el segundo enfoque.
+
+  Para la partición de las rutas generadas se hizo uso de la herramienta _cutRoutes.py_ de SUMO, la cual corta las rutas acorde a la partición del mapa que se busca simular. No obstante, dicha herramienta presenta problemas en tanto termina descartando ciertas rutas particionadas y recalculando los tiempos de partida para cada una; si bien existe una extensión que soluciona este problema para la futura paralelización de los procesos de simulación @Acosta2016, no fue posible acceder a ella, por lo que sólo se consideraron aquellas rutas resultantes de _cutRoutes.py_ para la posterior reconstrucción.
+
+    #pagebreak()
+  == Contenerización de simulaciones secuenciales
+  En una primera instancia de exploración del uso de _Singularity Containers_, se procedió a implementar la contenerización de simulaciones sin paralelizar. El resultado de esto fue la creación de un archivo de definición de _containers_ con extensión `.def`, el cual construye el entorno necesario para la ejecución de las simulaciones de manera aislada. A continuación, se muestra un ejemplo de estos archivos de definición para el levantamiento de los contenedores.
+
+  ```
+  Bootstrap: debootstrap
+  OSVersion: jammy
+  From: ubuntu:22.04
+  MirrorURL: http://us.archive.ubuntu.com/ubuntu/
+
+  %files
+      partition.net.xml /home/
+      viladecans.poly.xml /home/
+      partition.rou.xml /home/
+      sim.sumocfg /home/
+      traci_simulation /home/
+
+  %post
+      chmod 755 /root
+      apt update
+      apt-get install -y software-properties-common build-essential python3
+      add-apt-repository universe
+      add-apt-repository multiverse
+      apt-get update
+      apt-get install -y sumo sumo-tools sumo-doc
+
+
+  %environment
+      export SUMO_HOME=/usr/share/sumo
+
+  %runscript
+      cd /home
+      ./traci_simulation
+  ```
+
+  El _script_ de `C++` _traci_simulation_ tiene por objetivo ejecutar simulaciones aisladas de forma secuencial. Para esto, luego de configurar el entorno de la simulación, el código llama a una instancia de SUMO con el archivo de configuración previamente definido a partir del _script_ `generateConfig.py`, el cual genera un archivo `XML` especificando, entre otras cosas, cuáles son los archivos a utilizar para las redes de caminos y las rutas de los vehículos, con el objetivo de proveer las configuraciones necesarias para la ejecución de la simulación.
+    #pagebreak()
+  == Paralelización de las simulaciones particionadas
+
+  La paralelización de las simulaciones particionadas consistió en la implementación de un código en `C++` con la ayuda de _OpenMP_ para las directivas de compilación. Este código implementa una arquitectura de _multi-threading_, en la cual cada hilo de ejecución posee una instancia de SUMO contenerizada que simula una partición dada del mapa original, con las rutas propiamente particionadas de acuerdo con el algoritmo de _cutRoutes.py_.
+
+  En la siguiente figura, se muestra el funcionamiento general de la paralelización realizada con 5 _threads_. Primero se realiza un proceso de configuración de forma secuencial con el _script_ _generateConfig.py_, en el que se generan los archivos de configuración _sim.sumocfg_ a partir de los cuales se ejecutan las simulaciones en forma paralela mediante una instancia de SUMO contenerizada con _Singularity_. De esta manera, una vez que se crean los archivos de configuración, se realiza un llamado con el comando `#pragma omp parallel`, configurando el número de threads a ejecutarse como el número de particiones hechas previamente con _SPartSim_.
+  
+  #figure(
+      diagram(
+          spacing: (9mm, 4mm),
+          node-stroke: 1pt,
+          edge-stroke: 1pt,
+          node((-7,0), `Generate sim_i.sumocfg`, name: <1>, width: 31mm),
+          edge((-9,0), "r,r", "-|>", label: `start`),
+          node((-2,0), `SUMO instance`, name: <2>, width: 21mm),
+          node((-2,1), `SUMO instance`, name: <3>, width: 21mm),
+          node((-2,-1), `SUMO instance`, name: <4>, width: 21mm),
+          node((-2,2), `SUMO instance`, name: <5>, width: 21mm),
+          node((-2,-2), `SUMO instance`, name: <6>, width: 21mm),
+          node((0,0), `partition_3.log`, name: <7>, width: 34mm),
+          node((0,1), `partition_4.log`, name: <8>, width: 34mm),
+          node((0,-1), `partition_2.log`, name: <9>, width: 34mm),
+          node((0,2), `partition_5.log`, name: <10>, width: 34mm),
+          node((0,-2), `partition_1.log`, name: <11>, width: 34mm),
+          edge(<1>,<1>, "-|>", bend: 130deg, label: `for each partition`),
+          node(
+              enclose: (<2>, <3>, <4>, <5>, <6>),
+              name: <parallel>,
+              corner-radius: 3pt,
+          ),
+          edge(<1>,<parallel>, "-|>", label: `#pragma omp parallel`),
+          edge(<2>, <7>, "-|>"),
+          edge(<3>, <8>, "-|>"),
+          edge(<4>, <9>, "-|>"),
+          edge(<5>, <10>, "-|>"),
+          edge(<6>, <11>, "-|>"),
+          edge(<parallel>,<parallel>, "-|>", bend: 100deg, label: `run simulation`)
+      ),
+      
+  )
+
+  #pagebreak()
+  == Sincronización de las simulaciones particionadas
+  === Reensamblaje de rutas
+  En cuanto a la reconstrucción de las rutas, se implementó el módulo _route_reconstruction.py_, el cual toma tanto las rutas originales como las particionadas y, por cada ruta particionada, busca la ruta original y las agrupa en un diccionario indicando sus aristas, la partición a la que pertenece la ruta, y su índice de ocurrencia en la ruta original. De esta manera, fue posible realizar una reconstrucción parcial de los viajes generados por _randomTrips.py_.
+  
+  El resultado de esta reconstrucción se guarda finalmente en un archivo `.json`, con la estructura que se muestra a continuación: //Queda como trabajo futuro refinar la reconstrucción de rutas para que las simulaciones sean más precisas.
+
+  // TO-DO: Diagrama del archivo de reconstrucción de rutas.
+
+
+  ```
+  {
+      "routes": [
+          {
+              "original_route": str,
+              "cut_routes": [
+                  {
+                      "partition": int,
+                      "id": str,
+                      "cut_route": str,
+                      "next_partition": int,
+                      "next_route": str
+                  }, ...
+              ]
+          }, ...
+      ]
+  }
+  ```
+#figure(
+    diagram(
+        spacing: (9mm, 4mm),
+        node-stroke: 1pt,
+        edge-stroke: 1pt,
+        node((-9,-1), `routes`, name: <1>),
+        node((-7,-1), `original_route`, name: <2>),
+        node((-5.5,-1), `cut_routes`, name: <3>),
+        node((-3,-2), "partition: Int
+id: String
+cut_route: String
+next_partition: Int
+next_route: String", name: <4>, width: 41mm),
+        node((-3,-1), "partition: Int
+id: String
+cut_route: String
+next_partition: Int
+next_route: String", name: <5>, width: 41mm),
+        node((-3,2), "partition: Int
+id: String
+cut_route: String 
+next_partition: Int
+next_route: String", name: <6>, width: 41mm),
+        edge(<5>,<6>, ".."),
+        // node(
+        //     enclose: (<4>,<5>,<6>),
+        //     name: <partitions>,
+        //     corner-radius: 3pt,
+        // ),
+        edge(<1>,<2>, "-|>"),
+        edge(<2>,<3>, "-|>"),
+        edge(<3>,<4>, "-|>"),
+        edge(<3>,<5>, "-|>"),
+        edge(<3>,<6>, "-|>"),
+
+
+    ),
+    caption: [Estructura del archivo de reensamblaje de rutas generado por el script ]
+)
+
+  
+  === Comunicación entre nodos
+  Dado que la implementación sigue un enfoque para _shared-memory devices_, la comunicación entre los nodos de ejecución buscó realizarse mediante la implementación de una cola global en la cual, a cada paso de la simulación, cada hilo escribe los vehículos salientes de su partición con la partición a la que corresponde insertarse después, mientras que al paso siguiente lee e inserta en la simulación aquellos vehículos cuya entrada corresponde a su partición. Para esto, se hace uso de exclusión mutua por medio de la implementación de secciones críticas para la escritura en la cola de tráfico, mientras que para la adición o remoción de vehículos en cada partición se hace uso de las herramientas provistas por _libtraci_.
+  
+  #pagebreak()
+  === Impedimentos para la sincronización <impedimentos>
+  Como se menciona en la @5.3, la herramienta de particionamiento de rutas _cutRoutes.py_ presenta limitaciones al momento de considerarla para la sincronización de simulaciones de tráfico urbano mediante SUMO, principalmente al momento de definir los tiempos de partida de los vehículos (_departure times_), redefiniendo aquellas rutas que cruzan más de una partición como rutas independientes con el mismo tiempo de partida; esto radica en problemas tales como que al ingreso de nuevas rutas, no se reconozca el vehículo a insertar dado que el mismo ya ha salido de la simulación.
+
+  == Diseño e implementación de test de carga
+  === Test versión secuencial
+  Para poder realizar la comparación en cuanto al crecimiento de los tiempos de ejecución para las simulaciones secuenciales, se implementó el módulo de test en `C++`, el que contempla una primera fase de _setup_, donde se definen los períodos de generación de vehículos a partir de los cuales se generan los archivos de rutas necesarios para el mapa definido. En total, se definen veinte períodos para los cuales se definen también los archivos de configuración a utilizar para cada simulación.
+
+  La segunda etapa contempla la ejecución de cada simulación de forma secuencial mediante el módulo _load_test.cpp_, midiendo y registrando el tiempo que toma cada una en finalizar. Para esto, cada simulación se ejecutó un total de cincuenta veces, para luego obtener el tiempo total como el promedio de los tiempos de cada iteración.
+
+  === Test versión paralelizada
+  Para probar el escalamiento de la solución implementada, se siguió un procedimiento similar a los tests secuenciales, resultando en la implementación de los siguientes módulos:
+
+  - *_setup_*: este módulo genera los períodos, rutas, particiones y archivos de configuración necesarios para cada simulación, y organiza los archivos en sus directorios correspondientes.
+  - *_start_test_*: por cada set de particiones realizadas, este módulo se encarga de entrar a cada directorio e iniciar el test de carga para cada período dado.
+  - *_load_test_*: este módulo implementa el test de carga, el cual, a partir de los archivos de configuración y la imagen de _Singularity_ construida para las instancias de SUMO, ejecuta las simulaciones llamando al módulo encargado de paralelizar los procesos de simulación según el número de particiones realizadas. Tal como en el test para la versión secuencial, cada simulación se ejecuta un total de cincuenta veces, para luego promediar los tiempos de cada iteración.
+]
+
+
+
 #capitulo(title: "Resultados")[
-  A continuación, se muestran los resultados obtenidos para el test de carga de la versión paralelizada de las simulaciones implementadas en SUMO, considerando para ello las distintas frecuencias de inserción de vehículos definidas para cada _set_ de simulaciones y los tiempos de ejecución promedio para cada una. Para estas mediciones, se consideraron cinco conjuntos de particiones de diferentes tamaños: 4, 8, 16, 32 y 64 particiones. Para cada uno de estos conjuntos, se ejecutaron 1000 simulaciones, a saber, 50 simulaciones por cada frecuencia de inserción de vehículos definida.
+  A continuación, se muestran los resultados obtenidos para el test de carga de la versión paralelizada de las simulaciones implementadas en SUMO, considerando para ello las distintas frecuencias de inserción de vehículos definidas para cada _set_ de simulaciones y los tiempos de ejecución promedio para cada una. Para estas mediciones, se consideraron cinco conjuntos de particiones de diferentes tamaños: 4, 8, 16, 32 y 64 particiones. Para cada uno de estos conjuntos, se ejecutó un total de 1000 simulaciones, a saber, 50 simulaciones por cada frecuencia de inserción de vehículos definida El primer gráfico muestra como referencia el crecimiento de los tiempos de simulación en una versión secuencial, es decir, con un solo nodo de ejecución, mientras que los gráficos siguientes muestran dichos resultados para los distintos _sets_ de particiones.
 
   #figure(
       grid(
@@ -727,9 +769,9 @@ Se sugiere el uso de este algoritmo por sobre `METIS`, dado que el estudio reali
     caption: [Resultados para la prueba de escalabilidad basada en la carga de tráfico vehicular para la versión paralelizada de SUMO para 32 y 64 particiones.]
   ) <figura_13>
 
-Como es posible observar, la cota superior para el crecimiento de los tiempos de simulación para cada conjunto de particiones disminuye significativamente en comparación a una versión secuencial de éstas (es decir, una simulación que considera una única partición). Un detalle importante a observar dentro de estos resultados radica en la cota superior para las ejecuciones de los _sets_ de 64 particiones, ya que se muestra ligeramente mayor respecto a la cota para los _sets_ de 32 particiones.
+Como es posible observar, la cota superior para el crecimiento de los tiempos de simulación para cada conjunto de particiones disminuye significativamente en comparación a una versión secuencial de éstas (es decir, una simulación que considera una única partición). Un detalle importante a observar dentro de estos resultados radica en la cota superior para las ejecuciones de los _sets_ de 64 particiones, ya que se muestra ligeramente mayor respecto a la cota para los _sets_ de 32 particiones, lo que muestra una tendencia al crecimiento de dicha cota para cantidades de particiones cada vez mayores.
 
-Para estudiar más a fondo la escalabilidad de la solución propuesta, resulta necesario realizar una comparación entre los crecimientos de los tiempos de simulación para cada conjunto de particiones, además de contrastarlos con la versión secuencial. El siguiente gráfico muestra dichas diferencias, mostrando el comportamiento de cada conjunto de particiones al momento de ejecutar cada simulación para cada frecuencia de inserción definida:
+Con el objetivo de estudiar más a fondo la escalabilidad de la solución propuesta, resultó necesario realizar una comparación entre los crecimientos de los tiempos de simulación para cada conjunto de particiones según una escala que permitiese dicha medición, además de contrastarlos con la versión secuencial. El siguiente gráfico muestra las diferencias mencionadas, mostrando el comportamiento de cada conjunto de particiones al momento de ejecutar cada simulación para cada frecuencia de inserción de vehículos definida:
 
   #figure(
       image("graficos/comparativo.png", width: 90%),
@@ -738,7 +780,11 @@ Para estudiar más a fondo la escalabilidad de la solución propuesta, resulta n
 
 De aquí es posible observar que, si bien para frecuencias pequeñas no resulta eficiente una paralelización con 32 y 64 particiones, a medida que se aumenta el número de particiones los tiempos de simulación exhiben un comportamiento mucho más lineal, mientras que para altas tasas de inserción de vehículos, en la mayoría de los casos los tiempos de simulación tienden a converger, lo cual deja interpretar que, en casos de simulaciones con alta congestión de tráfico vehicular, no resulta más eficiente la solución que posea mayor número de particiones.
 
-Por otro lado, el _speedup_ para cada _set_ de simulaciones, es decir, la medida de aceleración de la solución, se calcula mediante la razón entre los tiempos originales de ejecución y los tiempos de ejecución de la solución propuesta. Mediante dicho cálculo, se obtuvieron los resultados que se muestran en las siguientes tablas, los cuales muestran que en gran parte de los casos, logró obtenerse un speedup superior al 5% esperado:
+Por otro lado, el _speedup_ para cada _set_ de simulaciones, es decir, la medida de aceleración de la solución, se calcula mediante la razón entre los tiempos originales de ejecución y los tiempos de ejecución de la solución propuesta:
+
+$ "speedup" = T_("Original") / T_("Sol")  $
+
+Mediante dicho cálculo, se obtuvieron los resultados que se muestran en las siguientes tablas, los cuales muestran que en gran parte de los casos, logró obtenerse un speedup superior al 5% esperado:
 
 #let speedup_4 = csv("resultados_csv/speedup_4.csv")
 #let speedup_8 = csv("resultados_csv/speedup_8.csv")
@@ -793,14 +839,20 @@ Por otro lado, el _speedup_ para cada _set_ de simulaciones, es decir, la medida
     caption: [Speedup para 64 particiones]
 )<speedup_3>
 
-El siguiente gráfico muestra con mayor claridad la variación del _speedup_ para cada set de simulaciones. Aquí es posible observar que, a medida que aumentamos el número de particiones, la tendencia general del _speedup_ de las simulaciones para cada punto mejorará; sin embargo, para simulaciones con alta carga de tráfico vehicular, la _performance_ de la solución propuesta disminuirá, llegando a ser similar a la solución secuencial:
+El siguiente gráfico muestra con mayor claridad la variación del _speedup_ para cada set de simulaciones. Aquí es posible observar que, a medida que se aumenta el número de particiones, la tendencia general del _speedup_ de las simulaciones para cada punto mejora en tanto posee un valor cada vez más alto; sin embargo, para simulaciones con alta carga de tráfico vehicular, la aceleración de la solución propuesta tiende a disminuir, llegando a ser similar a la de la solución secuencial.
+
+Además, cabe destacar que, fuera del _set_ de 4 particiones, los _speedup_ tienden a ser cada vez más similares entre los _sets_, lo cual indica que los tiempos de simulación para estos sets crecen de forma lineal en comparación a los tiempos de la simulación secuencial.
 
 #figure(
     image("graficos/speedup.png", width: 70%),
     caption: [Comparación del _speedup_ para distintos conjuntos de particiones.]
 ) <speedup>
 
-Por otro lado, es posible calcular la eficiencia de la paralelización mediante la razón entre el _speedup_ y el número de particiones realizadas. Esto nos da una idea de qué tan eficiente es la solución en relación a la versión secuencial (ejecutada mediante un solo nodo). Los resultados obtenidos de este cálculo se resumen en el siguiente gráfico, el cual muestra que la mayor eficiencia se obtiene con números bajos de particiones (menor a 32):
+Por otro lado, es posible calcular la eficiencia de la paralelización mediante la razón entre el _speedup_ y el número de particiones realizadas:
+
+$ "eficiencia" = "speedup" / n_("particiones") $
+
+Esto nos da una idea de qué tan eficiente es la solución en relación a la versión secuencial, en tanto muestra la capacidad de uso de los recursos disponibles por parte de las simulaciones en paralelo. Los resultados obtenidos de este cálculo se resumen en el siguiente gráfico, el cual muestra que la mayor eficiencia se obtiene con números bajos de particiones (menor a 32). Este resultado es importante, dado que deja entrever que para _sets_ de numerosas particiones, el _software_ SUMO podría no estar bien ajustado para la ejecución en paralelo, o bien que la paralelización en sí presenta ineficiencias o cuellos de botella:
 
 #figure(
     image("graficos/efficiency.png", width: 70%),
