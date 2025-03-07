@@ -552,7 +552,7 @@ Se sugiere el uso de este algoritmo por sobre `METIS`, dado que el estudio reali
 - Map<Integer, Vertex> vertices
 - Map<Integer, Edge> edges`, name: <3>, width: 35mm),
       edge(<1>, <2>, "-|>", label: `read()`),
-      edge(<2>,<3>, "-|>", label: `parse()`)
+      edge(<2>,<3>, "<|-|>", label: `parse()`),
       ),
       caption: [Diagrama de conversión de archivos `XML` a estructuras de tipo `Graph`.]
   )
@@ -647,11 +647,11 @@ Se sugiere el uso de este algoritmo por sobre `METIS`, dado que el estudio reali
   #pagebreak()
   == Sincronización de las simulaciones particionadas
   === Reensamblaje de rutas
-  En cuanto a la reconstrucción de las rutas, se implementó el módulo _route_reconstruction.py_, el cual toma tanto las rutas originales como las particionadas y, por cada ruta particionada, busca la ruta original y las agrupa en un diccionario indicando sus aristas, la partición a la que pertenece la ruta, y su índice de ocurrencia en la ruta original. De esta manera, fue posible realizar una reconstrucción parcial de los viajes generados por _randomTrips.py_.
+  En cuanto a la reconstrucción de las rutas, se implementó el módulo _route_reconstruction.py_, el cual toma tanto las rutas originales como las particionadas y, por cada ruta particionada, busca la ruta original y las agrupa en un diccionario indicando sus aristas, la partición a la que pertenece la ruta, y su índice de ocurrencia en la ruta original. 
   
-  El resultado de esta reconstrucción se guarda finalmente en un archivo `.json`, con la estructura que se muestra a continuación: //Queda como trabajo futuro refinar la reconstrucción de rutas para que las simulaciones sean más precisas.
-
-  // TO-DO: Diagrama del archivo de reconstrucción de rutas.
+  Para esto, primero se realiza un _mapping_ de cada arista por la que pasa cada ruta a sus particiones correspondientes. Luego, para cada vehículo presente en el archivo original de rutas, se divide la ruta original en una lista de aristas, para luego alinear las aristas con las particiones correspondientes e iterar sobre los segmentos alineados para construir las rutas cortadas. De esta manera, fue posible realizar una reconstrucción parcial de los viajes generados por _randomTrips.py_.
+  
+  El resultado de esta reconstrucción se guarda finalmente en un archivo `.json` que incluye información sobre las particiones y las rutas cortadas, con la estructura que se muestra a continuación: //Queda como trabajo futuro refinar la reconstrucción de rutas para que las simulaciones sean más precisas.
 
 
   ```
@@ -672,6 +672,9 @@ Se sugiere el uso de este algoritmo por sobre `METIS`, dado que el estudio reali
       ]
   }
   ```
+
+Adicionalmente, la siguiente figura ilustra la relación entre los campos de la estructura de los archivos de reensamblaje de rutas generados por el _script_ _route_reconstruction.py_.
+
 #figure(
     diagram(
         spacing: (9mm, 4mm),
@@ -718,7 +721,7 @@ next_route: String", name: <6>, width: 41mm),
   
   #pagebreak()
   === Impedimentos para la sincronización <impedimentos>
-  Como se menciona en la @5.3, la herramienta de particionamiento de rutas _cutRoutes.py_ presenta limitaciones al momento de considerarla para la sincronización de simulaciones de tráfico urbano mediante SUMO, principalmente al momento de definir los tiempos de partida de los vehículos (_departure times_), redefiniendo aquellas rutas que cruzan más de una partición como rutas independientes con el mismo tiempo de partida; esto radica en problemas tales como que al ingreso de nuevas rutas, no se reconozca el vehículo a insertar dado que el mismo ya ha salido de la simulación.
+  Como se menciona en la @5.3, la herramienta de particionamiento de rutas _cutRoutes.py_ presenta limitaciones al momento de considerarla para la sincronización de simulaciones de tráfico urbano mediante SUMO, principalmente al momento de definir los tiempos de partida de los vehículos (_departure times_), redefiniendo aquellas rutas que cruzan más de una partición como rutas independientes con diferentes tiempos de partida; esto radica en problemas tales como que al ingreso de nuevas rutas, no se reconozca el vehículo a insertar dado que las ya se encuentran definidas representan a un vehículo distinto en la simulación.
 
   == Diseño e implementación de test de carga
   === Test versión secuencial
@@ -776,7 +779,7 @@ Con el objetivo de estudiar más a fondo la escalabilidad de la solución propue
   #figure(
       image("graficos/comparativo.png", width: 90%),
       caption: [Comparación de escalabilidad de simulaciones con su versión secuencial.]
-  )<figura_14>
+  )<figura_15>
 
 De aquí es posible observar que, si bien para frecuencias pequeñas no resulta eficiente una paralelización con 32 y 64 particiones, a medida que se aumenta el número de particiones los tiempos de simulación exhiben un comportamiento mucho más lineal, mientras que para altas tasas de inserción de vehículos, en la mayoría de los casos los tiempos de simulación tienden a converger, lo cual deja interpretar que, en casos de simulaciones con alta congestión de tráfico vehicular, no resulta más eficiente la solución que posea mayor número de particiones.
 
@@ -859,40 +862,55 @@ Esto nos da una idea de qué tan eficiente es la solución en relación a la ver
     caption: [Comparación de la eficiencia de paralelización para distintos conjuntos de particiones.]
 )<eficiencia>
 
-  En cuanto al uso de CPU para cada set de simulaciones, se obtiene el siguiente gráfico comparativo entre la escalabilidad de cada número de particiones realizadas:
+  En cuanto al uso de CPU para cada set de simulaciones, el cual se mide a partir del uso del comando time y que reporta tanto el tiempo total de simulación como la cantidad de tiempo de CPU utilizado, se obtiene el siguiente gráfico comparativo entre la escalabilidad de cada número de particiones realizadas:
 
   #figure(
       image("resultados_test_de_carga/cpu_usage_fixed.png", width: 70%),
       caption: [Comparación de escalabilidad de uso de CPU por simulaciones ejecutadas con diferentes números de particiones.]
   )
+
+Estos datos proporcionan una visión clara del rendimiento de la CPU para distintas distribuciones de carga de trabajo, permitiendo comparar cómo varía el uso de la CPU con el aumento de particiones y cómo se optimiza la paralelización en función de los recursos disponibles.
+
 ]
 
 #capitulo(title: "Discusión", label: <discusion>)[
-  Como es posible observar de la @figura_11, la @figura_12 y la @figura_13, existe una gran diferencia entre la escalabilidad de la versión secuencial de una simulación y las versiones paralelizadas, teniendo estas últimas una cota superior considerablemente inferior a la cota superior de tiempo de las simulaciones no paralelizadas, lo cual muestra que las versiones paralelas de las simulaciones son más eficientes en cuanto al tiempo de ejecución de éstas.
+  Como es posible observar de la @figura_11, la @figura_12 y la @figura_13, existe una gran diferencia entre la escalabilidad de la versión secuencial de una simulación y las versiones paralelizadas, teniendo estas últimas una cota superior considerablemente inferior a la cota superior de tiempo de las simulaciones no paralelizadas, lo cual muestra que las versiones paralelas de las simulaciones son más eficientes en cuanto al tiempo de ejecución de éstas, además de que la paralelización logra reducir los tiempos de ejecución de forma efectiva.
 
-  Adicionalmente, es posible extraer de la @figura_14 que, a medida que se aumenta la cantidad de particiones, el escalamiento de las simulaciones aparenta ser cada vez más lineal, implicando también un mayor costo para las simulaciones con menor tasa de inserción de vehículos para simulaciones de grandes cantidades de particiones, pero un menor crecimiento en cuanto a los tiempos de ejecución de las simulaciones.
+  Adicionalmente, es posible extraer de la @figura_15 que, a medida que se aumenta la cantidad de particiones, el escalamiento de las simulaciones aparenta ser cada vez más lineal, implicando también un mayor costo para las simulaciones con menor tasa de inserción de vehículos para simulaciones de grandes cantidades de particiones, pero un menor crecimiento en cuanto a los tiempos de ejecución de las simulaciones. Este punto de saturación en el cual el aumento de particiones ya no proporciona un incremento significativo en el _speedup_ puede deberse a limitaciones en los recursos de hardware, por lo que se esperan resultados diferentes al momento de cambiar el ambiente de simulación a uno con mayor capacidad de cómputo. 
+  
+  Fuera de esto, se observa que a medida que se aumenta el número de particiones, el _speedup_ también aumenta, lo cual muestra que la solución propuesta es más eficiente en cuanto a la aceleración de las simulaciones a medida que se aumenta el número de particiones.
 
   Asímismo, el aumento en el _speedup_ mostrado en la @speedup nos muestra que, si bien es posible llegar a tener tiempos hasta 40 veces mejores que en una versión secuencial para escenarios con una inserción de autos moderada, para escenarios con altas tasas de tráfico la _performance_ tiende a descender. En cuanto a la eficiencia de la solución planteada, la @eficiencia nos muestra que para un número de particiones también moderada (es decir, menor a 32 particiones), se tiene una alta eficiencia sobre los tiempos de simulación para frecuencias de generación de vehículos que se encuentran alrededor y bajo la mediana, mientras que para escenarios con mayor congestión de tráfico la eficiencia de la solución propuesta tiende a ser más baja.
 
   Cabe considerar en estos resultados dos aspectos importantes: el balance de las cargas en las particiones y la pérdida de información al realizar el corte de rutas.
 
-  Por un lado, el algoritmo aplicado para el particionamiento de los grafos correspondientes a la representación de los mapas conlleva un desbalance entre la cantidad de nodos presentes en las particiones que es importante considerar, ya que existen particiones que superan considerablemente a otras en este aspecto. Esto puede provocar que la escalabilidad de la solución se vea sujeta principalmente a la escalabilidad que ofrezcan los nodos con mayor carga, en vez de cada una de las particiones realizadas.
+  Entre las posibles causas para la disminución de la eficiencia de la paralelización de las simulaciones se encuentra el desbalance en la carga de tráfico vehicular entre las particiones, lo cual puede llevar a que la escalabilidad de la solución se vea sujeta principalmente a la escalabilidad que ofrezcan los nodos con mayor carga, en vez de cada una de las particiones realizadas. Además de esto, se encuentra el _overhead_ que implica la gestión de un gran número de particiones, tanto en la creación y destrucción de los nodos como en la gestión de sus estados, lo cual puede llevar a que la solución propuesta no sea eficiente en términos de uso de recursos computacionales.
 
   Por otro lado, el proceso de recorte de rutas según las particiones realizadas a los mapas implica una pérdida de información necesaria a considerar, dado que implica una menor carga para los nodos de ejecución, al eliminar vehículos cuyas rutas no cumplen con los criterios definidos por el algoritmo de particionamiento de rutas provisto por _cutRoutes.py_. Un posible trabajo a futuro consiste en revisitar este algoritmo para poder manejar de otra manera el corte de las rutas con los tiempos de partida de los vehículos y, de esta manera, evitar dicha pérdida de información.
 
-  En cuanto a los procesos de sincronización, se hace necesario implementar una manera de gestionar los tiempos de partida de los vehículos, de forma que no se produzca el fenómeno descrito en la @impedimentos y las rutas particionadas no queden como rutas independientes, sino que posean dependencia de unas con otras entre los nodos de ejecución. Dentro de la implementación también resulta necesario considerar el _overhead_ que implican los procesos de comunicación entre los nodos, lo cual podría afectar de manera considerable a la escalabilidad de la solución ya implementada.
+  En cuanto a los procesos de sincronización, se hace necesario implementar una manera de gestionar los tiempos de partida de los vehículos, de forma que no se produzca el fenómeno descrito en la @impedimentos y las rutas particionadas no queden como rutas independientes, sino que posean dependencia de unas con otras entre los nodos de ejecución. Para esto, se sugiere realizar modificaciones al código fuente de la herramienta _cutRoutes.py_, en las cuales se calcule el tiempo de partida del vehículo en la siguiente partición en base a los tiempos de llegada de éste a cada punto de corte de su ruta. 
+  
+  Dentro de la implementación también resulta necesario considerar el _overhead_ que implican los procesos de comunicación entre los nodos, dado que la sobrecarga en la sincronización puede tender a incrementar la latencia en la comunicación, además del incremento en el uso de ancho de banda. Adicionalmente, el hecho de que la diferencia de carga en las particiones afecte en los tiempos de término de cada paso de la simulación por cada nodo, implica la consideración de los tiempos de espera de cada partición. 
+  
+  Todo esto podría afectar de manera considerable a la escalabilidad de la solución ya implementada, en tanto conlleva el incremento en los tiempos de ejecución.
 
-  En cuanto al uso de CPU, es posible observar que hasta en las condiciones menos óptimas se llega a un uso de alrededor del 80%, lo cual sugiere una mejora en cuanto al uso de recursos computacionales respecto a la solución secuencial, que ocupa, en el general de los casos, el 100% de la CPU que se le asigna para el proceso de simulación. 
+  En cuanto al uso de CPU, es posible observar que hasta en las condiciones menos óptimas se llega a un uso de alrededor del 80%, lo cual sugiere una mejora en cuanto al uso de recursos computacionales respecto a la solución secuencial, que ocupa, en el general de los casos, el 100% de la CPU que se le asigna para el proceso de simulación. Esto sugiere una mejora en la eficiencia del uso de los recursos computacionales, lo que se debe a diferentes factores, entre ellos, la distribución de la carga de trabajo entre múltiples núcleos y la reducción de tiempos de espera debido a la paralelización de los procesos de simulación.
 
-  Cabe considerar, además, que la ejecución de estos experimentos fue realizada en un computador Intel#sym.trademark.registered Core#sym.trademark i7-106G7 CPU \@2,30GHz, dado que por problemas que escapan al alcance de esta tesis, no fue posible llevarla a cabo en un ambiente de supercomputación. Sin embargo, es posible replicar estos experimentos en supercomputadores dada la contenerización de los procesos de SUMO en _Singularity_, lo cual mantiene al _software_ portable para estos entornos.
+  Cabe considerar, además, que la ejecución de estos experimentos fue realizada en un computador Intel#sym.trademark.registered Core#sym.trademark i7-106G7 CPU \@2,30GHz, dado que por problemas que escapan al alcance de esta tesis, no fue posible llevarla a cabo en un ambiente de supercomputación. Sin embargo, la contenerización de los procesos de SUMO en Singularity permite la portabilidad del _software_ a estos entornos, lo que permitiría realizar experimentos de mayor escala y con mayor cantidad de particiones, y así evaluar el comportamiento de la solución en condiciones de mayor capacidad computacional.
 ]
 
 #capitulo(title: "Conclusiones")[
   Durante este trabajo, se desarrolló un sistema de paralelización de simulaciones de tráfico vehicular urbano a partir del uso del _software_ SUMO, orientado a su uso en supercomputadores por medio de la herramienta de paralelización _OpenMP_. Esto, con el objetivo de estudiar la escalabilidad de una solución al problema de los costos en CPU y tiempos de ejecución para estas simulaciones, de manera que puedan insertarse de manera eficiente a proyectos tales como el desarrollo de _Gemelos Digitales_ para ciudades.
 
-  Dentro de la investigación, se plantearon preguntas en torno al mejoramiento en la _performance_ de las simulaciones; en particular, si es que es posible optimizarla y cómo influyen el área a simular y la carga vehicular en el rendimiento de las ejecuciones. A partir de los resultados obtenidos y lo discutido en el @discusion, es posible concluir que si bien es posible mejorar la _performance_ de las simulaciones de tráfico vehicular urbano mediante la paralelización de sus procesos, es necesario tener en cuenta el _overhead_ que implica la necesidad de procesos de sincronización entre los nodos de ejecución, dado que en el _pipeline_ para llegar a la paralelización ocurre pérdida de información que se debe manejar si se quiere mantener la precisión y la alta granularidad de las simulaciones.
+  Dentro de la investigación, se plantearon preguntas en torno al mejoramiento en la _performance_ de las simulaciones; en particular, si es que es posible optimizarla y cómo influyen el área a simular y la carga vehicular en el rendimiento de las ejecuciones. A partir de los resultados obtenidos y lo discutido en el @discusion, es posible concluir que si bien es posible mejorar la _performance_ de las simulaciones de tráfico vehicular urbano mediante la paralelización de sus procesos, es necesario tener en cuenta el _overhead_ que implica la necesidad de procesos de sincronización entre los nodos de ejecución. En el _pipeline_ para llegar a la paralelización, ocurre una pérdida de información que debe manejarse adecuadamente si se quiere mantener la precisión y alta granularidad de las simulaciones. Esto resalta la importancia del equilibrio entre rendimiento y fidelidad en los modelos urbanos complejos.
 
-  Adicionalmente, se concluye que únicamente con paralelización, el escalamiento de las simulaciones en cuanto a tiempos de ejecución se _lineariza_ a medida que se aumenta el número de particiones; es decir, que pasan de mostrar un comportamiento exponencial a uno más lineal. Mientras tanto, el uso de CPU pasa de ser constante en un 100% de la CPU asignada a las simulaciones a un máximo del 80% de ésta, manteniéndose variable en función del número de particiones realizadas y la frecuencia de inserción de vehículos en la simulación. Respecto al comportamiento de los tiempos de ejecución en función del tamaño del mapa, se tiene que estos crecen de forma lineal a medida que la red de caminos lo hace; por lo tanto, se concluye que este no resulta ser un factor determinante al momento de considerar las variables que afectan de manera significativa la escalabilidad tanto de las simulaciones secuenciales como las paralelizadas.
+  Como es posible observar en los resultados obtenidos, existe una gran diferencia entre la escalabilidad de la versión secuencial de una simulación y las versiones paralelizadas. Estas últimas muestran una cota superior de tiempo considerablemente inferior a la de las simulaciones no paralelizadas, lo que indica que la paralelización es una estrategia eficiente en la reducción de los tiempos de ejecución de las simulaciones.
+
+  Adicionalmente, se concluye que únicamente con paralelización, el escalamiento de las simulaciones en cuanto a tiempos de ejecución se _lineariza_ a medida que se aumenta el número de particiones; es decir, que pasan de mostrar un comportamiento exponencial a uno más lineal, aunque se observa un punto de saturación en el cual el aumento de particiones ya no proporciona un incremento significativo en el _speedup_ de las simulaciones. Esto puede deberse a limitaciones en los recursos de hardware, por lo que se esperan resultados diferentes al momento de cambiar el ambiente de simulación a uno con mayor capacidad de cómputo.
+
+  Sumado a lo anterior, el análisis del _speedup_ muestra que es posible obtener mejoras de hasta 40 veces en los tiempos de ejecución en escenarios con una inserción moderada de vehículos. Sin embargo, en escenarios con altas tasas de tráfico, la _performance_ tiende a descender. La eficiencia de la solución también se mantiene alta para configuraciones de particiones moderadas, pero decrece para escenarios con alta congestión de tráfico. Esto sugiere que la solución propuesta es más eficiente en términos de aceleración de las simulaciones a medida que se aumenta el número de particiones, pero que para escenarios con alta carga de tráfico vehicular, la eficiencia de la solución propuesta tiende a ser más baja. 
+  
+  Mientras tanto, el uso de CPU pasa de ser constante en un 100% de la CPU asignada a las simulaciones a un máximo del 80% de ésta, manteniéndose variable en función del número de particiones realizadas y la frecuencia de inserción de vehículos en la simulación. Respecto al comportamiento de los tiempos de ejecución en función del tamaño del mapa, se tiene que estos crecen de forma lineal a medida que la red de caminos lo hace; por lo tanto, se concluye que este no resulta ser un factor determinante al momento de considerar las variables que afectan de manera significativa la escalabilidad tanto de las simulaciones secuenciales como las paralelizadas.
 
   Finalmente, se consideran diferentes vías de trabajo futuro para el mejoramiento de las simulaciones en cuanto a su precisión y la pérdida de información en el proceso de corte de rutas para su paralelización. 
 
@@ -902,7 +920,7 @@ Esto nos da una idea de qué tan eficiente es la solución en relación a la ver
 
   Otro aspecto importante a considerar es la elección del algoritmo de particionamiento de grafos a utilizar para preparar la paralelización de las simulaciones; si bien en el presente trabajo se hizo uso únicamente del algoritmo de _SPartSim_, es posible realizar comparaciones sobre la _performance_ de las simulaciones en función del algoritmo de particionamiento elegido.
 
-  El trabajo aquí desarrollado deja la posibilidad de continuar expandiendo la línea del conocimiento sobre la paralelización de simulaciones que, en un futuro próximo, podrá aportar una gran utilidad para el desarrollo de modelos tales como los _Gemelos Digitales_ para ciudades, los cuales pretenden ser una herramienta de mejoramiento en la calidad de vida de millones de personas alrededor del mundo por medio de la implementación de dinámicas y políticas públicas de manera más informada, eficiente y segura, por medio del modelamiento computacional de los entornos y sus dinámicas.
+  El trabajo aquí desarrollado deja la posibilidad de continuar expandiendo la línea del conocimiento sobre la paralelización de simulaciones que, en un futuro próximo, podrá aportar una gran utilidad para el desarrollo de modelos tales como los _Gemelos Digitales_ para ciudades. Estas herramientas tienen el potencial de contribuir significativamente a la mejora de la calidad de vida de millones de personas alrededor del mundo, permitiendo la implementación de políticas públicas de manera más informada, eficiente y segura, a través del modelamiento computacional de los entornos urbanos y sus dinámicas. Además, la paralelización de simulaciones de tráfico vehicular urbano puede ser de gran utilidad para la implementación de sistemas de transporte inteligente, la planificación urbana y la gestión de la movilidad en las ciudades, permitiendo la simulación de escenarios complejos y la evaluación de políticas públicas en un entorno virtual, antes de su implementación en el mundo real.
 ]
 
 #show: end-doc
