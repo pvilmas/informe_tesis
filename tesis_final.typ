@@ -25,7 +25,7 @@
 )[
     El presente trabajo de tesis aborda la problemática del escalamiento de simulaciones de tráfico vehicular urbano para su uso en el modelamiento de flujos de tráfico a nivel microscópico a través de grandes áreas metropolitanas. Se encuentra orientado a su implementación en ambientes de supercomputación, insertándose en un proyecto conjunto entre NIC Chile Research Labs y el _Barcelona Supercomputing Center_ (BSC) para el desarrollo de gemelos digitales para las ciudades de Barcelona y Kobe (Japón).
 
-    Dado el escalamiento de comportamiento exponencial de las simulaciones que se estudian dentro del trabajo preliminar de esta investigación, se propone una solución basada en la paralelización de estos procesos, buscando aumentar el _speedup_ de la ejecución de las simulaciones, con el objetivo de analizar y comparar el crecimiento entre ambos modelos en cuanto al tiempo de ejecución.
+    Dado el escalamiento de comportamiento exponencial de las simulaciones que se estudian dentro del estado inicial de esta investigación, se propone una solución basada en la paralelización de estos procesos, buscando aumentar el _speedup_ de la ejecución de las simulaciones, con el objetivo de analizar y comparar el crecimiento entre ambos modelos en cuanto al tiempo de ejecución.
     
     Por medio del uso del _software_ SUMO (_Simulation of Urban MObility_), el uso del algoritmo de partición de grafos _SPartSim_ para la división de mapas y la implementación de una arquitectura de paralelización orientada a dispositivos de memoria compartida a través de _OpenMP_, se logra desarrollar una versión paralela de simulaciones generadas para las ciudades de Barcelona y Viladecans.
 
@@ -125,7 +125,7 @@
 (.net.xml)"),
           edge(<trips>, <rou>, "-|>"),
       ),
-      caption: [_Pipeline_ para simulaciones basadas en el tamaño de la red.]
+      caption: [_Pipeline_ para simulaciones basadas en el tamaño de la red]
   )
 
   === Prueba de escalabilidad basada en el número de agentes por simulación para computadores personales
@@ -163,7 +163,7 @@
           edge(<1>,<trips>, "-|>",),
           edge(<trips>, <rou>, "-|>"),
       ),
-      caption: [_Pipeline_ para simulaciones basadas en la carga de tráfico vehicular.]
+      caption: [_Pipeline_ para simulaciones basadas en la carga de tráfico vehicular]
   )<pipeline>
 
   Para poder incrementar de manera uniforme la cantidad de vehículos presentes en la simulación, se configuró la tasa de inserciones de agentes de _randomTrips.py_ @Randomtrips para tomar valores decrecientes en el intervalo [0.025, 1.0], mientras que la configuración de _duarouter_ no fue alterada.
@@ -183,7 +183,7 @@
           image("imagenes/s_time_edges.png", width: 90%),
           image("imagenes/cpu_edges.png", width: 90%),
       ),
-      caption: [Resultados para la prueba de escalabilidad basada en el tamaño de la red de caminos.]
+      caption: [Resultados para la prueba de escalabilidad basada en el tamaño de la red de caminos]
   )
 
   Como es posible observar, en este caso existe un crecimiento lineal de los tiempos de simulación en relación al crecimiento de la red de caminos, lo cual nos muestra que dicho crecimiento no es realmente un problema al momento de ejecutar simulaciones sobre áreas extensas. Aún así, cabe destacar que el uso de CPU se mantiene constante en un valor máximo, lo cual muestra que los procesos de SUMO consumen la totalidad de los recursos que se le asignan.
@@ -197,10 +197,18 @@
           image("imagenes/s_time_freq.png", width: 90%),
           image("imagenes/cpu_freq.png", width: 90%),
       ),
-      caption: [Resultados para la prueba de escalabilidad basada en la carga de tráfico vehicular.]
+      caption: [Resultados para la prueba de escalabilidad basada en la carga de tráfico vehicular]
   )
 
   En este caso, se puede observar un crecimiento exponencial de los tiempos de ejecución de cada simulación en relación a la frecuencia de inserción de vehículos en ésta. Es relevante mencionar que, a pesar de aumentar los tiempos de manera exponencial, las simulaciones no realizaron uso de la memoria _swap_ del computador, lo que deja en evidencia que el problema principal para la ejecución de las simulaciones en términos de procesamiento refiere a la carga de vehículos o agentes dentro de la simulación más que el tamaño de la red, y sugiere la necesidad de paralelización de estos procesos. Por otro lado, se obtiene que el uso de CPU también se mantiene constante en un valor máximo para la mayoría de los casos.
+== Implicaciones de los problemas de escalabilidad
+
+Los problemas de escalabilidad en simulaciones de tráfico urbano tienen múltiples implicaciones prácticas. En escenarios donde se requiere evaluar el impacto de cambios en la infraestructura vial, la implementación de nuevas tecnologías de transporte o la gestión de tráfico en áreas metropolitanas, la capacidad de realizar simulaciones detalladas y precisas es crucial para la toma de decisiones informadas. Sin embargo, la complejidad de las simulaciones de tráfico urbano, que involucran la interacción de múltiples agentes y la modelación de comportamientos dinámicos, puede resultar en tiempos de ejecución prohibitivos para áreas extensas y con alta carga de tráfico.
+
+Un ejemplo relevante se da en la planificación del tráfico en megaciudades, donde las simulaciones deben considerar la interacción de cientos de miles de vehículos, peatones y otros agentes en tiempo real. En estos casos, la imposibilidad de escalar eficientemente las simulaciones puede hacer inviable su uso en la toma de decisiones, ya que los tiempos de simulación pueden superar con creces los límites de tiempo aceptables para la planificación y evaluación de políticas de movilidad urbana. Esto es particularmente crítico en estudios de emergencia, como la evaluación de planes de evacuación ante desastres naturales o eventos de alta concurrencia, donde los tiempos de ejecución deben ser lo más cortos posibles para permitir una respuesta rápida y efectiva.
+
+Además, la falta de escalabilidad puede limitar la capacidad de modelar futuros escenarios de tráfico, como la integración de vehículos autónomos en la red vial. La simulación de grandes volúmenes de datos en entornos urbanos inteligentes requiere la ejecución de simulaciones complejas con millones de interacciones entre agentes, lo cual puede verse afectado por los problemas de paralelización y sincronización en arquitecturas de supercomputación.
+
 
   Como es posible observar a partir de lo ya expuesto, existen principalmente dos dificultades al momento de buscar mejorar la _performance_ de las simulaciones de tráfico urbano. La primera de ellas, y la más importante, refiere a la cantidad y variedad de agentes presentes en cada simulación. Dado que de la ejecución secuencial se tiene que los tiempos de ejecución aumentan de forma exponencial, al momento de querer simular redes de caminos con alta congestión de tránsito, el tiempo de ejecución de la simulación se alejará cada vez más de lo que se desea como una simulación en tiempo real. Este resultado se extiende también a la presencia de diversidad en los agentes de tráfico urbano, a saber: vehículos privados, transporte público, bicicletas, peatones, etc. Si bien el primer estudio de escalabilidad fue realizado con un solo tipo de vehículo, es posible extrapolar que el crecimiento de los tiempos de ejecución ante una mayor variedad de agentes se verá afectado en tanto crecerán también de una forma exponencial.
 
@@ -418,7 +426,8 @@
           [63.43%], [99.9%], [1.86%],
           [Después],
           [2.3%], [2.6%], [1.7%],
-      )
+      ),
+      caption: [Resultados de uso de CPU y memoria durante la simulación de tráfico vehicular en SUMO (adaptado de @Azevedo2024)]
   )
 
   A partir de esto, surge la necesidad de explorar vías de mejoramiento en la _performance_ de las simulaciones, de manera que se optimice el uso de recursos computacionales para el funcionamiento esperado del Gemelo Digital.
@@ -554,7 +563,7 @@ Se sugiere el uso de este algoritmo por sobre `METIS`, dado que el estudio reali
       edge(<1>, <2>, "-|>", label: `read()`),
       edge(<2>,<3>, "<|-|>", label: `parse()`),
       ),
-      caption: [Diagrama de conversión de archivos `XML` a estructuras de tipo `Graph`.]
+      caption: [Diagrama de conversión de archivos `XML` a estructuras de tipo `Graph`]
   )
   
   Como es posible observar, la estructura `XMLGraph` conserva del mapa original atributos tales como la localización, los límites de velocidad y la versión del archivo, los cuales se mantienen al momento de realizar la conversión de las particiones desde la estructura `Graph` a `XMLGraph` para su posterior escritura en los distintos archivos `XML` correspondientes a cada partición.
@@ -641,7 +650,7 @@ Se sugiere el uso de este algoritmo por sobre `METIS`, dado que el estudio reali
           edge(<6>, <11>, "-|>"),
           edge(<parallel>,<parallel>, "-|>", bend: 100deg, label: `run simulation`)
       ),
-      
+      caption: [Diagrama de paralelización de simulaciones particionadas]
   )
 
   #pagebreak()
@@ -749,7 +758,7 @@ next_route: String", name: <6>, width: 41mm),
           image("graficos/1_particion.png", width: 91%),
           image("graficos/4_particiones.png", width: 91%)
       ),
-      caption: [Resultados para la prueba de escalabilidad basada en la carga de tráfico vehicular para la versión paralelizada de SUMO para 1 y 4 particiones.]
+      caption: [Resultados para la prueba de escalabilidad basada en la carga de tráfico vehicular para la versión paralelizada de SUMO para 1 y 4 particiones]
   ) <figura_11>
 
   #figure(
@@ -759,7 +768,7 @@ next_route: String", name: <6>, width: 41mm),
         image("graficos/8_particiones.png", width: 91%),
         image("graficos/16_particiones.png", width: 91%),
     ),
-    caption: [Resultados para la prueba de escalabilidad basada en la carga de tráfico vehicular para la versión paralelizada de SUMO para 8 y 16 particiones.]
+    caption: [Resultados para la prueba de escalabilidad basada en la carga de tráfico vehicular para la versión paralelizada de SUMO para 8 y 16 particiones]
   ) <figura_12>
 
   #figure(
@@ -769,7 +778,7 @@ next_route: String", name: <6>, width: 41mm),
         image("graficos/32_particiones.png", width: 91%),
         image("graficos/64_particiones.png", width: 91%)
     ),
-    caption: [Resultados para la prueba de escalabilidad basada en la carga de tráfico vehicular para la versión paralelizada de SUMO para 32 y 64 particiones.]
+    caption: [Resultados para la prueba de escalabilidad basada en la carga de tráfico vehicular para la versión paralelizada de SUMO para 32 y 64 particiones]
   ) <figura_13>
 
 Como es posible observar, la cota superior para el crecimiento de los tiempos de simulación para cada conjunto de particiones disminuye significativamente en comparación a una versión secuencial de éstas (es decir, una simulación que considera una única partición). Un detalle importante a observar dentro de estos resultados radica en la cota superior para las ejecuciones de los _sets_ de 64 particiones, ya que se muestra ligeramente mayor respecto a la cota para los _sets_ de 32 particiones, lo que muestra una tendencia al crecimiento de dicha cota para cantidades de particiones cada vez mayores.
@@ -778,16 +787,16 @@ Con el objetivo de estudiar más a fondo la escalabilidad de la solución propue
 
   #figure(
       image("graficos/comparativo.png", width: 90%),
-      caption: [Comparación de escalabilidad de simulaciones con su versión secuencial.]
+      caption: [Comparación de escalabilidad de simulaciones con su versión secuencial]
   )<figura_15>
 
 De aquí es posible observar que, si bien para frecuencias pequeñas no resulta eficiente una paralelización con 32 y 64 particiones, a medida que se aumenta el número de particiones los tiempos de simulación exhiben un comportamiento mucho más lineal, mientras que para altas tasas de inserción de vehículos, en la mayoría de los casos los tiempos de simulación tienden a converger, lo cual deja interpretar que, en casos de simulaciones con alta congestión de tráfico vehicular, no resulta más eficiente la solución que posea mayor número de particiones.
 
 Por otro lado, el _speedup_ para cada _set_ de simulaciones, es decir, la medida de aceleración de la solución, se calcula mediante la razón entre los tiempos originales de ejecución y los tiempos de ejecución de la solución propuesta:
 
-$ "speedup" = T_("Original") / T_("Sol")  $
+$ "speedup" = T_("Original") / T_("Solución")  $
 
-Mediante dicho cálculo, se obtuvieron los resultados que se muestran en las siguientes tablas, los cuales muestran que en gran parte de los casos, logró obtenerse un speedup superior al 5% esperado:
+Mediante dicho cálculo, se obtuvieron los resultados que se muestran en las siguientes tablas, los cuales muestran que en gran parte de los casos, logró obtenerse un speedup superior al esperado:
 
 #let speedup_4 = csv("resultados_csv/speedup_4.csv")
 #let speedup_8 = csv("resultados_csv/speedup_8.csv")
@@ -848,7 +857,7 @@ Además, cabe destacar que, fuera del _set_ de 4 particiones, los _speedup_ tien
 
 #figure(
     image("graficos/speedup.png", width: 70%),
-    caption: [Comparación del _speedup_ para distintos conjuntos de particiones.]
+    caption: [Comparación del _speedup_ para distintos conjuntos de particiones]
 ) <speedup>
 
 Por otro lado, es posible calcular la eficiencia de la paralelización mediante la razón entre el _speedup_ y el número de particiones realizadas:
@@ -859,14 +868,14 @@ Esto nos da una idea de qué tan eficiente es la solución en relación a la ver
 
 #figure(
     image("graficos/efficiency.png", width: 70%),
-    caption: [Comparación de la eficiencia de paralelización para distintos conjuntos de particiones.]
+    caption: [Comparación de la eficiencia de paralelización para distintos conjuntos de particiones]
 )<eficiencia>
 
   En cuanto al uso de CPU para cada set de simulaciones, el cual se mide a partir del uso del comando time y que reporta tanto el tiempo total de simulación como la cantidad de tiempo de CPU utilizado, se obtiene el siguiente gráfico comparativo entre la escalabilidad de cada número de particiones realizadas:
 
   #figure(
       image("resultados_test_de_carga/cpu_usage_fixed.png", width: 70%),
-      caption: [Comparación de escalabilidad de uso de CPU por simulaciones ejecutadas con diferentes números de particiones.]
+      caption: [Comparación de escalabilidad de uso de CPU por simulaciones ejecutadas con diferentes números de particiones]
   )
 
 Estos datos proporcionan una visión clara del rendimiento de la CPU para distintas distribuciones de carga de trabajo, permitiendo comparar cómo varía el uso de la CPU con el aumento de particiones y cómo se optimiza la paralelización en función de los recursos disponibles.
@@ -894,7 +903,8 @@ Estos datos proporcionan una visión clara del rendimiento de la CPU para distin
   
   Todo esto podría afectar de manera considerable a la escalabilidad de la solución ya implementada, en tanto conlleva el incremento en los tiempos de ejecución.
 
-  En cuanto al uso de CPU, es posible observar que hasta en las condiciones menos óptimas se llega a un uso de alrededor del 80%, lo cual sugiere una mejora en cuanto al uso de recursos computacionales respecto a la solución secuencial, que ocupa, en el general de los casos, el 100% de la CPU que se le asigna para el proceso de simulación. Esto sugiere una mejora en la eficiencia del uso de los recursos computacionales, lo que se debe a diferentes factores, entre ellos, la distribución de la carga de trabajo entre múltiples núcleos y la reducción de tiempos de espera debido a la paralelización de los procesos de simulación.
+  En cuanto al uso de CPU, es posible observar que hasta en condiciones poco óptimas se llega a un uso de alrededor del 80%, lo cual sugiere una mejora en cuanto al uso de recursos computacionales respecto a la solución secuencial, la cual posee una demanda de CPU que alcanza el 100% de la potencia de los recursos asignados en el computador personal utilizado para realizar estas pruebas. Esto sugiere una mejora en la eficiencia del uso de los recursos computacionales, lo que se debe a diferentes factores, entre ellos, la distribución de la carga de trabajo entre múltiples núcleos y la reducción de tiempos de espera debido a la paralelización de los procesos de simulación.
+ 
 
   Cabe considerar, además, que la ejecución de estos experimentos fue realizada en un computador Intel#sym.trademark.registered Core#sym.trademark i7-106G7 CPU \@2,30GHz, dado que por problemas que escapan al alcance de esta tesis, no fue posible llevarla a cabo en un ambiente de supercomputación. Sin embargo, la contenerización de los procesos de SUMO en Singularity permite la portabilidad del _software_ a estos entornos, lo que permitiría realizar experimentos de mayor escala y con mayor cantidad de particiones, y así evaluar el comportamiento de la solución en condiciones de mayor capacidad computacional.
 ]
@@ -1164,57 +1174,50 @@ Estos datos proporcionan una visión clara del rendimiento de la CPU para distin
     == Resultados para tiempos de ejecución de simulaciones paralelizadas
 
     #linebreak()
+
     #let results_4 = csv("resultados_csv/results_4_partitions.csv")
     #let results_8 = csv("resultados_csv/results_8_partitions.csv")
     #let results_16 = csv("resultados_csv/results_16_partitions.csv")
-    #stack(
-        dir: ltr,
-        spacing: 1fr,
-        figure(
+
+    #figure(
+        stack(
+            dir: ltr,
+            spacing: 1fr,
             table(
-            columns: 2,
-            ..results_4.flatten()
+                columns: 2,
+                ..results_4.flatten()
             ),
-            caption: [4 particiones]
+            table(
+                columns: 2,
+                ..results_8.flatten()
+            ),
+            table(
+                columns: 2,
+                ..results_16.flatten()
+            ),
         ),
-        figure(
-            table(
-            columns: 2,
-            ..results_8.flatten()
-            ),
-            caption: [8 particiones]
-        ),
-        figure(
-            table(
-            columns: 2,
-            ..results_16.flatten()
-            ),
-            caption: [16 particiones]
-        )
+        caption: [Tiempos de ejecución para 4 (izquierda), 8 y 16 (derecha) particiones]
     )
     
     #pagebreak()
     #let results_32 = csv("resultados_csv/results_32_partitions.csv")
     #let results_64 = csv("resultados_csv/results_64_partitions.csv")
-    #stack(
-        dir: ltr,
-        1fr,
-        figure(
+    #figure(
+        stack(
+            dir: ltr,
+            1fr,
             table(
-            columns: 2,
-            ..results_32.flatten()
+                columns: 2,
+                ..results_32.flatten()
             ),
-            caption: [32 particiones]
-        ),
-        1fr,
-        figure(
+            1fr,
             table(
-            columns: 2,
-            ..results_64.flatten()
+                columns: 2,
+                ..results_64.flatten()
             ),
-            caption: [64 particiones]
+            1fr,
         ),
-        1fr
+        caption: [Tiempos de ejecución para 32 (izquierda) y 64 (derecha) particiones]
     )
     
     #pagebreak()
